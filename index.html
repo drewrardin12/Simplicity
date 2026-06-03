@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>My Feed</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500&display=swap');
+
+  :root {
+    --bg: #0a0a0a;
+    --surface: #141414;
+    --border: #222;
+    --text: #f0f0f0;
+    --muted: #666;
+    --accent: #e8c840;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    min-height: 100vh;
+  }
+
+  header {
+    padding: 24px 20px 16px;
+    border-bottom: 1px solid var(--border);
+    position: sticky;
+    top: 0;
+    background: var(--bg);
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  header h1 {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 28px;
+    letter-spacing: 2px;
+    color: var(--accent);
+  }
+
+  header span {
+    font-size: 12px;
+    color: var(--muted);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+  }
+
+  .filter-row {
+    display: flex;
+    gap: 8px;
+    padding: 12px 20px;
+    overflow-x: auto;
+    border-bottom: 1px solid var(--border);
+    scrollbar-width: none;
+  }
+  .filter-row::-webkit-scrollbar { display: none; }
+
+  .pill {
+    flex-shrink: 0;
+    padding: 6px 14px;
+    border-radius: 999px;
+    border: 1px solid var(--border);
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--muted);
+    cursor: pointer;
+    transition: all 0.2s;
+    white-space: nowrap;
+    background: transparent;
+  }
+  .pill.active, .pill:hover {
+    background: var(--accent);
+    color: #000;
+    border-color: var(--accent);
+  }
+
+  .feed {
+    padding: 16px 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    max-width: 700px;
+    margin: 0 auto;
+  }
+
+  .video-card {
+    background: var(--surface);
+    border-radius: 10px;
+    overflow: hidden;
+    border: 1px solid var(--border);
+    transition: transform 0.2s;
+  }
+  .video-card:hover { transform: translateY(-2px); }
+
+  .thumb-wrap {
+    position: relative;
+    width: 100%;
+    padding-top: 56.25%;
+    cursor: pointer;
+    background: #111;
+  }
+  .thumb-wrap img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  .play-overlay {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0,0,0,0.3);
+    opacity: 0;
+    transition: opacity 0.2s;
+  }
+  .thumb-wrap:hover .play-overlay { opacity: 1; }
+  .play-overlay svg { width: 56px; height: 56px; }
+
+  .embed-wrap {
+    position: relative;
+    width: 100%;
+    padding-top: 56.25%;
+    display: none;
+  }
+  .embed-wrap iframe {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    border: none;
+  }
+
+  .card-info { padding: 12px 14px; }
+  .card-category {
+    font-size: 10px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 2px;
+  }
+  .card-channel {
+    font-size: 11px;
+    color: var(--accent);
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 4px;
+  }
+  .card-title {
+    font-size: 14px;
+    font-weight: 500;
+    line-height: 1.4;
+    color: var(--text);
+    margin-bottom: 6px;
+  }
+  .card-meta { font-size: 11px; color: var(--muted); }
+
+  .loading {
+    text-align: center;
+    padding: 60px 20px;
+    color: var(--muted);
+    font-size: 14px;
+  }
+  .spinner {
+    width: 32px; height: 32px;
+    border: 2px solid var(--border);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    margin: 0 auto 12px;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .error { text-align: center; padding: 40px 20px; color: #e05; font-size: 13px; }
+  .empty { text-align: center; padding: 60px 20px; color: var(--muted); font-size: 14px; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>MY FEED</h1>
+  <span id="video-count"></span>
+</header>
+
+<div class="filter-row" id="filter-bar"></div>
+
+<div class="feed" id="feed">
+  <div class="loading"><div class="spinner"></div>Loading your channels...</div>
+</div>
+
+<script>
+const API_KEY = 'AIzaSyCx3ZL1LKQX5GpfUUxSrb1dRdz';
+
+const CHANNELS = [
+  // Golf
+  { name: 'Bob Does Sports',   handle: 'bobdoessports',     category: 'Golf' },
+  { name: 'Grant Horvat',      handle: 'granthorvatgolf',   category: 'Golf' },
+  // Packers
+  { name: 'Locked On Packers', handle: 'lockedonpackers',   category: 'Packers' },
+  { name: 'Pack-A-Day Podcast',handle: 'packadaypodcast',   category: 'Packers' },
+  { name: 'Cheesehead TV',     handle: 'cheeseheadtv',      category: 'Packers' },
+  { name: 'SidelineScoop',     handle: 'SidelineScoop',     category: 'Packers' },
+  { name: 'Basaraski',         handle: 'Basaraski',         category: 'Packers' },
+  { name: 'Go Pack Show',      handle: 'GoPackShow',        category: 'Packers' },
+  { name: 'Green Bay Packers', handle: 'packers',           category: 'Packers' },
+  // Sports Talk
+  { name: 'Le Batard Show',    handle: 'lebatardshow',      category: 'Sports Talk' },
+];
+
+const CATEGORIES = ['All', 'Golf', 'Packers', 'Sports Talk'];
+
+let allVideos = [];
+let activeFilter = 'All';
+
+async function resolveHandle(handle) {
+  const res = await fetch(
+    `https://www.googleapis.com/youtube/v3/channels?part=contentDetails&forHandle=${handle}&key=${API_KEY}`
+  );
+  const data = await res.json();
+  if (!data.items?.length) return null;
+  return data.items[0].contentDetails.relatedPlaylists.uploads;
+}
+
+async function getVideos(channel) {
+  const uploadsId = await resolveHandle(channel.handle);
+  if (!uploadsId) return [];
+  const res = await fetch(
+    `https://www.googleapis.com/youtube/v3/playlistItems?part=snippet&maxResults=8&playlistId=${uploadsId}&key=${API_KEY}`
+  );
+  const data = await res.json();
+  if (!data.items) return [];
+  return data.items.map(item => ({
+    id: item.snippet.resourceId.videoId,
+    title: item.snippet.title,
+    thumbnail: item.snippet.thumbnails?.medium?.url || item.snippet.thumbnails?.default?.url,
+    channelName: channel.name,
+    category: channel.category,
+    publishedAt: item.snippet.publishedAt,
+  }));
+}
+
+function timeAgo(dateStr) {
+  const diff = Date.now() - new Date(dateStr).getTime();
+  const mins = Math.floor(diff / 60000);
+  if (mins < 60) return `${mins}m ago`;
+  const hrs = Math.floor(mins / 60);
+  if (hrs < 24) return `${hrs}h ago`;
+  const days = Math.floor(hrs / 24);
+  if (days < 30) return `${days}d ago`;
+  return `${Math.floor(days/30)}mo ago`;
+}
+
+function renderFeed() {
+  const feed = document.getElementById('feed');
+  const filtered = activeFilter === 'All'
+    ? allVideos
+    : allVideos.filter(v => v.category === activeFilter);
+
+  document.getElementById('video-count').textContent = `${filtered.length} videos`;
+
+  if (!filtered.length) {
+    feed.innerHTML = '<div class="empty">No videos found.</div>';
+    return;
+  }
+
+  feed.innerHTML = filtered.map(v => `
+    <div class="video-card">
+      <div class="thumb-wrap" onclick="playVideo('${v.id}', this)">
+        <img src="${v.thumbnail}" alt="" loading="lazy">
+        <div class="play-overlay">
+          <svg viewBox="0 0 80 80" fill="none">
+            <circle cx="40" cy="40" r="38" fill="rgba(0,0,0,0.6)" stroke="white" stroke-width="2"/>
+            <polygon points="32,24 60,40 32,56" fill="white"/>
+          </svg>
+        </div>
+      </div>
+      <div class="embed-wrap" id="embed-${v.id}"></div>
+      <div class="card-info">
+        <div class="card-category">${v.category}</div>
+        <div class="card-channel">${v.channelName}</div>
+        <div class="card-title">${v.title}</div>
+        <div class="card-meta">${timeAgo(v.publishedAt)}</div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function playVideo(videoId, thumbWrap) {
+  const embedWrap = document.getElementById(`embed-${videoId}`);
+  thumbWrap.style.display = 'none';
+  embedWrap.style.display = 'block';
+  embedWrap.innerHTML = `<iframe src="https://www.youtube.com/embed/${videoId}?autoplay=1" allowfullscreen allow="autoplay; encrypted-media"></iframe>`;
+}
+
+function buildFilters() {
+  const bar = document.getElementById('filter-bar');
+  bar.innerHTML = CATEGORIES.map((cat, i) =>
+    `<button class="pill${i === 0 ? ' active' : ''}" onclick="filterBy('${cat}', this)">${cat}</button>`
+  ).join('');
+}
+
+function filterBy(cat, el) {
+  activeFilter = cat;
+  document.querySelectorAll('.pill').forEach(p => p.classList.remove('active'));
+  el.classList.add('active');
+  renderFeed();
+}
+
+async function init() {
+  buildFilters();
+  const results = await Promise.allSettled(CHANNELS.map(getVideos));
+  allVideos = results
+    .flatMap(r => r.status === 'fulfilled' ? r.value : [])
+    .sort((a, b) => new Date(b.publishedAt) - new Date(a.publishedAt));
+  renderFeed();
+}
+
+init();
+</script>
+</body>
+</html>
