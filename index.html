@@ -402,7 +402,13 @@
       All
     </button>
     <button class="nav-item" onclick="selectCategory('Golf', this)">
-      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="7" r="3"/><path d="M12 10v11M9 21h6"/><path d="M17 4l2-1"/></svg>
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+        <!-- Flag on pole -->
+        <line x1="12" y1="3" x2="12" y2="18"/>
+        <polygon points="12,3 19,7 12,11" fill="currentColor" stroke="none"/>
+        <!-- Ground/hole -->
+        <ellipse cx="10" cy="20" rx="5" ry="1.5"/>
+      </svg>
       Golf
     </button>
     <button class="nav-item" onclick="selectCategory('Packers', this)">
