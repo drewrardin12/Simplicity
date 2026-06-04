@@ -30,21 +30,34 @@
     overflow-x: hidden;
   }
 
-  /* Scroll fade — mask on the feed container itself */
-  .feed-container {
-    position: relative;
-    -webkit-mask-image: linear-gradient(
-      to bottom,
-      transparent 0px,
-      black 60px,
-      black calc(100% - 60px),
+  .feed-container { position: relative; }
+
+  /* Fade overlay pinned just below header */
+  .fade-top {
+    position: fixed;
+    top: 0;
+    left: 0; right: 0;
+    height: 160px;
+    pointer-events: none;
+    z-index: 98;
+    background: linear-gradient(to bottom,
+      var(--bg) 0%,
+      rgba(4,4,6,0.85) 40%,
       transparent 100%
     );
-    mask-image: linear-gradient(
-      to bottom,
-      transparent 0px,
-      black 60px,
-      black calc(100% - 60px),
+  }
+
+  /* Fade overlay pinned just above nav */
+  .fade-bottom {
+    position: fixed;
+    bottom: 0;
+    left: 0; right: 0;
+    height: 160px;
+    pointer-events: none;
+    z-index: 198;
+    background: linear-gradient(to top,
+      var(--bg) 0%,
+      rgba(4,4,6,0.85) 40%,
       transparent 100%
     );
   }
@@ -460,6 +473,8 @@
   <div class="history-body" id="history-body"></div>
 </div>
 
+<div class="fade-top"></div>
+<div class="fade-bottom"></div>
 <div class="ptr-indicator" id="ptr">Refreshing...</div>
 <div class="feed-container"><div class="feed" id="feed"></div></div>
 
@@ -670,30 +685,31 @@ async function fetchWithProxy(url) {
   return null;
 }
 
-async function fetchChannelVideos(channel) {
+const SEVEN_DAYS = 7 * 24 * 60 * 60 * 1000;
+
+async function fetchChannelVideos(channel, maxAgeDays = 7) {
   try {
-    // Use standard channel_id feed — always most current
     const contents = await fetchWithProxy(`https://www.youtube.com/feeds/videos.xml?channel_id=${channel.id}`);
     if (!contents) return [];
     const xml = new DOMParser().parseFromString(contents, 'text/xml');
-    return Array.from(xml.querySelectorAll('entry')).slice(0, 8).map(entry => {
+    const cutoff = Date.now() - (maxAgeDays * 24 * 60 * 60 * 1000);
+    const all = Array.from(xml.querySelectorAll('entry')).map(entry => {
       const videoId = entry.querySelector('videoId')?.textContent || entry.querySelector('id')?.textContent?.split(':').pop();
       const seconds = entry.querySelector('content')?.getAttribute('duration') || entry.querySelector('duration')?.getAttribute('seconds') || null;
       const title = entry.querySelector('title')?.textContent || '';
-      // Detect shorts: title contains #shorts/#Short, or seconds <= 90
-      const isShort = title.toLowerCase().includes('#short') ||
-                      (seconds && parseInt(seconds) <= 90);
+      const publishedAt = entry.querySelector('published')?.textContent || '';
+      // Detect shorts by hashtag in title only (most reliable without API)
+      const isShort = title.toLowerCase().includes('#short');
       return {
-        id: videoId,
-        title,
+        id: videoId, title,
         thumbnail: `https://i.ytimg.com/vi/${videoId}/mqdefault.jpg`,
         channelName: channel.name,
         category: isShort ? 'Shorts & Other' : channel.category,
-        publishedAt: entry.querySelector('published')?.textContent || '',
-        seconds,
-        isShort: !!isShort,
+        publishedAt, seconds, isShort,
       };
     });
+    // Return only videos within the cutoff window
+    return all.filter(v => new Date(v.publishedAt).getTime() >= cutoff);
   } catch { return []; }
 }
 
@@ -767,37 +783,13 @@ function renderFeed() {
   }
   if (activeChannel !== 'All') filtered = filtered.filter(v => v.channelName === activeChannel);
   if (query) filtered = filtered.filter(v => v.title.toLowerCase().includes(query));
-  // Apply per-channel limit unless showAll
-  let displayed = filtered;
-  if (!showAll) {
-    const seen = {};
-    displayed = filtered.filter(v => {
-      seen[v.channelName] = (seen[v.channelName] || 0) + 1;
-      return seen[v.channelName] <= INITIAL_LIMIT;
-    });
-  }
-
   document.getElementById('video-count').textContent = `${filtered.length} videos`;
-  if (!filtered.length) { feed.innerHTML = '<div class="empty">No videos found.</div>'; return; }
-  feed.innerHTML = '';
-  displayed.forEach(v => feed.appendChild(buildCard(v, watched)));
-
-  // Load more button
-  if (!showAll && displayed.length < filtered.length) {
-    const btn = document.createElement('button');
-    btn.id = 'load-more-btn';
-    btn.textContent = `Load More (${filtered.length - displayed.length} more videos)`;
-    btn.style.cssText = `
-      display: block; width: 100%; margin: 8px 0 16px;
-      padding: 14px; background: transparent;
-      border: 1px solid #333; border-radius: 12px;
-      color: #aaa; font-family: 'DM Sans', sans-serif;
-      font-size: 14px; font-weight: 500; cursor: pointer;
-      transition: all 0.2s; letter-spacing: 0.3px;
-    `;
-    btn.addEventListener('click', () => { showAll = true; renderFeed(); });
-    feed.appendChild(btn);
+  if (!filtered.length) {
+    feed.innerHTML = '<div class="empty">No videos in the last 7 days.</div>';
+    return;
   }
+  feed.innerHTML = '';
+  filtered.forEach(v => feed.appendChild(buildCard(v, watched)));
 }
 
 function openPlayer(videoId, title, channelName) {
