@@ -516,7 +516,8 @@ async function fetchWithProxy(url) {
 
 async function fetchChannelVideos(channel) {
   try {
-    const contents = await fetchWithProxy(`https://www.youtube.com/feeds/videos.xml?channel_id=${channel.id}`);
+    const cacheBust = Math.floor(Date.now() / (5 * 60 * 1000)); // changes every 5 min
+    const contents = await fetchWithProxy(`https://www.youtube.com/feeds/videos.xml?channel_id=${channel.id}&_cb=${cacheBust}`);
     if (!contents) return [];
     const xml = new DOMParser().parseFromString(contents, 'text/xml');
     // No date filter — show everything the RSS returns, sorted by date
@@ -656,7 +657,10 @@ async function loadVideos() {
   document.getElementById('video-count').textContent = 'Loading...';
   const promises = CHANNELS.map(channel =>
     fetchChannelVideos(channel).then(videos => {
-      allVideos = [...allVideos, ...videos]
+      // Deduplicate by video ID
+      const seen = new Set(allVideos.map(v => v.id));
+      const fresh = videos.filter(v => !seen.has(v.id));
+      allVideos = [...allVideos, ...fresh]
         .sort((a, b) => new Date(b.publishedAt) - new Date(a.publishedAt));
       renderFeed();
     }).catch(() => {})
