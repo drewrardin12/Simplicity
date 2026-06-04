@@ -273,8 +273,8 @@
 
   .video-card {
     display: flex;
-    gap: 12px;
-    padding: 12px 0;
+    gap: 14px;
+    padding: 14px 0;
     border-bottom: 1px solid var(--border);
     cursor: pointer;
     transition: opacity 0.2s;
@@ -287,8 +287,8 @@
   .thumb-wrap {
     position: relative;
     flex-shrink: 0;
-    width: 120px;
-    height: 68px;
+    width: 160px;
+    height: 90px;
     border-radius: 8px;
     overflow: hidden;
     background: var(--surface);
@@ -347,11 +347,11 @@
     margin-bottom: 4px;
   }
   .card-title {
-    font-size: 14px;
+    font-size: 15px;
     font-weight: 500;
     line-height: 1.4;
     color: var(--text);
-    margin-bottom: 5px;
+    margin-bottom: 6px;
     display: -webkit-box;
     -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
@@ -379,7 +379,7 @@
   }
   .skeleton-thumb {
     flex-shrink: 0;
-    width: 120px; height: 68px;
+    width: 160px; height: 90px;
     border-radius: 8px;
     background: linear-gradient(90deg, #1c1c1c 25%, #242424 50%, #1c1c1c 75%);
     background-size: 200% 100%;
@@ -572,7 +572,28 @@ const CHANNELS = [
 ];
 
 const CATEGORIES = ['Golf', 'Packers', 'Sports Talk', 'Other'];
-const PROXY = 'https://api.allorigins.win/get?url=';
+const PROXIES = [
+  'https://api.allorigins.win/get?url=',
+  'https://corsproxy.io/?',
+  'https://api.codetabs.com/v1/proxy?quest=',
+];
+
+async function fetchWithProxy(url) {
+  for (const proxy of PROXIES) {
+    try {
+      const isAllOrigins = proxy.includes('allorigins');
+      const res = await fetch(proxy + encodeURIComponent(url));
+      if (!res.ok) continue;
+      if (isAllOrigins) {
+        const json = await res.json();
+        return json.contents;
+      } else {
+        return await res.text();
+      }
+    } catch { continue; }
+  }
+  return null;
+}
 let allVideos = [];
 let activeCategory = 'All';
 let activeChannel = 'All';
@@ -639,12 +660,15 @@ function buildChannelPills(cat, selected) {
 
 async function fetchChannelVideos(channel) {
   try {
-    const rssUrl = encodeURIComponent(`https://www.youtube.com/feeds/videos.xml?channel_id=${channel.id}`);
-    const res = await fetch(`${PROXY}${rssUrl}`);
-    const json = await res.json();
-    const xml = new DOMParser().parseFromString(json.contents, 'text/xml');
+    const rssUrl = `https://www.youtube.com/feeds/videos.xml?channel_id=${channel.id}`;
+    const contents = await fetchWithProxy(rssUrl);
+    if (!contents) return [];
+    const xml = new DOMParser().parseFromString(contents, 'text/xml');
     return Array.from(xml.querySelectorAll('entry')).slice(0, 15).map(entry => {
       const videoId = entry.querySelector('videoId')?.textContent || entry.querySelector('id')?.textContent?.split(':').pop();
+      // Duration from media:group > media:content seconds attribute
+      const seconds = entry.querySelector('content')?.getAttribute('duration') ||
+                      entry.querySelector('duration')?.getAttribute('seconds') || null;
       return {
         id: videoId,
         title: entry.querySelector('title')?.textContent || '',
@@ -652,9 +676,20 @@ async function fetchChannelVideos(channel) {
         channelName: channel.name,
         category: channel.category,
         publishedAt: entry.querySelector('published')?.textContent || '',
+        seconds: seconds,
       };
     });
   } catch { return []; }
+}
+
+function formatDuration(seconds) {
+  if (!seconds) return null;
+  const s = parseInt(seconds);
+  const h = Math.floor(s / 3600);
+  const m = Math.floor((s % 3600) / 60);
+  const sec = s % 60;
+  if (h > 0) return h + ':' + String(m).padStart(2,'0') + ':' + String(sec).padStart(2,'0');
+  return m + ':' + String(sec).padStart(2,'0');
 }
 
 function timeAgo(dateStr) {
@@ -703,6 +738,7 @@ function renderFeed() {
         <img src="${v.thumbnail}" alt="" loading="lazy">
         ${newVid && !isWatched ? '<div class="new-badge">NEW</div>' : ''}
         ${isWatched ? '<div class="watched-badge">WATCHED</div>' : ''}
+        ${formatDuration(v.seconds) ? `<div class="duration-badge">${formatDuration(v.seconds)}</div>` : ''}
       </div>
       <div class="card-info">
         <div class="card-channel">${v.channelName}</div>
@@ -765,8 +801,17 @@ function showSkeletons() {
 }
 
 async function loadVideos() {
-  const results = await Promise.allSettled(CHANNELS.map(fetchChannelVideos));
-  allVideos = results.flatMap(r => r.status === 'fulfilled' ? r.value : [])
+  // Load in batches of 4 to avoid overwhelming the proxy
+  const batchSize = 4;
+  let allResults = [];
+  for (let i = 0; i < CHANNELS.length; i += batchSize) {
+    const batch = CHANNELS.slice(i, i + batchSize);
+    const results = await Promise.allSettled(batch.map(fetchChannelVideos));
+    allResults = allResults.concat(results);
+    // Small delay between batches
+    if (i + batchSize < CHANNELS.length) await new Promise(r => setTimeout(r, 300));
+  }
+  allVideos = allResults.flatMap(r => r.status === 'fulfilled' ? r.value : [])
     .sort((a, b) => new Date(b.publishedAt) - new Date(a.publishedAt));
   renderFeed();
   renderContinue();
