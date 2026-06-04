@@ -60,6 +60,8 @@
     scrollbar-width: none;
   }
   .filter-row::-webkit-scrollbar { display: none; }
+  #channel-bar { background: #0f0f0f; border-top: none; padding-top: 8px; padding-bottom: 8px; }
+  #channel-bar .pill { font-size: 11px; padding: 4px 12px; }
 
   .pill {
     flex-shrink: 0;
@@ -191,7 +193,8 @@
   <span id="video-count"></span>
 </header>
 
-<div class="filter-row" id="filter-bar"></div>
+<div class="filter-row" id="cat-bar"></div>
+<div class="filter-row" id="channel-bar" style="display:none"></div>
 
 <div class="feed" id="feed">
   <div class="loading"><div class="spinner"></div>Loading your channels...</div>
@@ -201,22 +204,23 @@
 // Channel IDs for RSS feeds (no API key needed)
 const CHANNELS = [
   { name: 'Bob Does Sports',    id: 'UCqr4sONkmFEOPc3rfoVLEvg', category: 'Golf' },
-  { name: 'Grant Horvat',       id: 'UCgUueMmSpcl-aCTt5CuCKQw', category: 'Golf' },
+  { name: 'Grant Horvat',       id: 'UC_3WB1wfJaItIiN2RJsRMOw', category: 'Golf' },
   { name: 'Locked On Packers',  id: 'UCufUP6i_pdfTjqVEswITOmw', category: 'Packers' },
   { name: 'Pack-A-Day Podcast', id: 'UCSGx5Pq0zA_7O726M3JEptA', category: 'Packers' },
   { name: 'Cheesehead TV',      id: 'UCMzR22wVc2Ru8Hz0fsVzkIQ', category: 'Packers' },
-  { name: 'SidelineScoop',      id: 'UCq7fHWBCTwkMPbPiP-5FJsA', category: 'Packers' },
-  { name: 'Basaraski',          id: 'UCsGO7qCXFkNkDpFHGt3loDg', category: 'Packers' },
-  { name: 'Go Pack Show',       id: 'UCvBbDMDOFoSVBMVYDVJvnog', category: 'Packers' },
-  { name: 'Green Bay Packers',  id: 'UCuHgHbHBWQMXKA2GOEb9hGg', category: 'Packers' },
-  { name: 'Le Batard Show',     id: 'UC927fEg6cl35hzEPJ28-tYA', category: 'Sports Talk' },
+  { name: 'SidelineScoop',      id: 'UCk42R8SfxN9S0rXCs3M6PJg', category: 'Packers' },
+  { name: 'Basaraski',          id: 'UCd9L1l2Odu2cND3ILHiuJQQ', category: 'Packers' },
+  { name: 'Go Pack Show',       id: 'UCi7MwcGY2NkYNTDP60nlmTA', category: 'Packers' },
+  { name: 'Green Bay Packers',  id: 'UCJtI-l6La0zniodFtSHYrBg', category: 'Packers' },
+  { name: 'Le Batard Show',     id: 'UCAIZ314ffmfM4PynCR8vElw', category: 'Sports Talk' },
 ];
 
 const CATEGORIES = ['All', 'Golf', 'Packers', 'Sports Talk'];
 const PROXY = 'https://api.allorigins.win/get?url=';
 
 let allVideos = [];
-let activeFilter = 'All';
+let activeCategory = 'All';
+let activeChannel = 'All';
 
 function getRssUrl(channelId) {
   return `https://www.youtube.com/feeds/videos.xml?channel_id=${channelId}`;
@@ -256,9 +260,9 @@ function timeAgo(dateStr) {
 
 function renderFeed() {
   const feed = document.getElementById('feed');
-  const filtered = activeFilter === 'All'
-    ? allVideos
-    : allVideos.filter(v => v.category === activeFilter);
+  let filtered = allVideos;
+  if (activeCategory !== 'All') filtered = filtered.filter(v => v.category === activeCategory);
+  if (activeChannel !== 'All') filtered = filtered.filter(v => v.channelName === activeChannel);
 
   document.getElementById('video-count').textContent = `${filtered.length} videos`;
 
@@ -296,22 +300,40 @@ function playVideo(videoId, thumbWrap) {
   embedWrap.innerHTML = `<iframe src="https://www.youtube.com/embed/${videoId}?autoplay=1" allowfullscreen allow="autoplay; encrypted-media"></iframe>`;
 }
 
-function buildFilters() {
-  const bar = document.getElementById('filter-bar');
+function buildCategoryBar() {
+  const bar = document.getElementById('cat-bar');
   bar.innerHTML = CATEGORIES.map((cat, i) =>
-    `<button class="pill${i === 0 ? ' active' : ''}" onclick="filterBy('${cat}', this)">${cat}</button>`
+    `<button class="pill${i === 0 ? ' active' : ''}" onclick="selectCategory('${cat}', this)">${cat}</button>`
   ).join('');
 }
 
-function filterBy(cat, el) {
-  activeFilter = cat;
-  document.querySelectorAll('.pill').forEach(p => p.classList.remove('active'));
+function selectCategory(cat, el) {
+  activeCategory = cat;
+  activeChannel = 'All';
+  document.querySelectorAll('#cat-bar .pill').forEach(p => p.classList.remove('active'));
+  el.classList.add('active');
+
+  const channelBar = document.getElementById('channel-bar');
+  if (cat === 'All') {
+    channelBar.style.display = 'none';
+  } else {
+    const channels = [...new Set(allVideos.filter(v => v.category === cat).map(v => v.channelName))];
+    channelBar.style.display = 'flex';
+    channelBar.innerHTML = `<button class="pill active" onclick="selectChannel('All', this)">All</button>` +
+      channels.map(ch => `<button class="pill" onclick="selectChannel('${ch}', this)">${ch}</button>`).join('');
+  }
+  renderFeed();
+}
+
+function selectChannel(ch, el) {
+  activeChannel = ch;
+  document.querySelectorAll('#channel-bar .pill').forEach(p => p.classList.remove('active'));
   el.classList.add('active');
   renderFeed();
 }
 
 async function init() {
-  buildFilters();
+  buildCategoryBar();
   const results = await Promise.allSettled(CHANNELS.map(fetchChannelVideos));
   allVideos = results
     .flatMap(r => r.status === 'fulfilled' ? r.value : [])
