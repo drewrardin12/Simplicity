@@ -126,7 +126,7 @@
     display: flex; flex-direction: column; gap: 12px;
   }
 
-  /* MOVIE POSTER CARDS */
+  /* MOVIE POSTER CARDS — dark frosted glass with beveled edge + emerald light leak */
   .video-card {
     position: relative;
     border-radius: 16px;
@@ -134,22 +134,52 @@
     cursor: pointer;
     background: var(--surface);
     transition: opacity 0.2s, transform 0.15s;
-    /* Glassy edge sheen - subtle highlight on corners/edges, no solid border */
+    /* Soft border to define the card */
+    border: 1px solid rgba(255,255,255,0.07);
+    /* Beveled edge: bright top-left, dark bottom-right */
+    /* Outer glow + depth shadow */
     box-shadow:
-      inset 0 1px 0 rgba(255,255,255,0.08),
-      inset 1px 0 0 rgba(255,255,255,0.04),
-      inset -1px 0 0 rgba(255,255,255,0.02),
-      0 2px 12px rgba(0,0,0,0.4);
+      /* Top-left bevel highlight */
+      inset 0 1px 0 rgba(255,255,255,0.10),
+      inset 1px 0 0 rgba(255,255,255,0.06),
+      /* Bottom-right dark bevel */
+      inset 0 -1px 0 rgba(0,0,0,0.5),
+      inset -1px 0 0 rgba(0,0,0,0.3),
+      /* Soft emerald light leak bottom-right */
+      inset -60px -40px 80px rgba(34,197,94,0.05),
+      /* Outer depth shadow */
+      0 4px 24px rgba(0,0,0,0.55),
+      0 1px 4px rgba(0,0,0,0.4);
+  }
+  /* Glassy overlay pseudo-element for frosted depth */
+  .video-card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    border-radius: 16px;
+    pointer-events: none;
+    /* Subtle top-left glass sheen */
+    background: linear-gradient(
+      135deg,
+      rgba(255,255,255,0.04) 0%,
+      transparent 50%,
+      rgba(34,197,94,0.03) 100%
+    );
   }
   .video-card.is-new {
+    border-color: rgba(34,197,94,0.18);
     box-shadow:
-      inset 0 1px 0 rgba(255,255,255,0.1),
-      inset 1px 0 0 rgba(34,197,94,0.15),
-      inset -1px 0 0 rgba(34,197,94,0.08),
-      0 0 20px rgba(34,197,94,0.1),
-      0 2px 12px rgba(0,0,0,0.4);
+      inset 0 1px 0 rgba(255,255,255,0.10),
+      inset 1px 0 0 rgba(255,255,255,0.06),
+      inset 0 -1px 0 rgba(0,0,0,0.5),
+      inset -1px 0 0 rgba(0,0,0,0.3),
+      /* Stronger emerald leak for new cards */
+      inset -80px -50px 100px rgba(34,197,94,0.09),
+      0 0 28px rgba(34,197,94,0.08),
+      0 4px 24px rgba(0,0,0,0.55);
   }
-  .video-card.watched { opacity: 0.4; }
+  .video-card.watched { opacity: 0.38; }
   .video-card:active { transform: scale(0.985); }
 
   .card-thumb-wrap {
@@ -167,29 +197,30 @@
     position: absolute; inset: 0;
     background: linear-gradient(
       to bottom,
-      transparent 30%,
-      rgba(0,0,0,0.4) 60%,
-      rgba(0,0,0,0.92) 100%
+      transparent 25%,
+      rgba(0,0,0,0.35) 55%,
+      rgba(0,0,0,0.95) 100%
     );
     pointer-events: none;
+    z-index: 1;
   }
 
   /* Badges on thumbnail */
   .badge-new {
-    position: absolute; top: 10px; left: 10px; z-index: 2;
+    position: absolute; top: 10px; left: 10px; z-index: 4;
     background: var(--new); color: #fff;
     font-size: 10px; font-weight: 700; padding: 3px 8px;
     border-radius: 5px; letter-spacing: 0.8px; text-transform: uppercase;
   }
   .badge-watched {
-    position: absolute; top: 10px; left: 10px; z-index: 2;
+    position: absolute; top: 10px; left: 10px; z-index: 4;
     background: rgba(0,0,0,0.75); color: var(--text2);
     font-size: 10px; font-weight: 600; padding: 3px 8px;
     border-radius: 5px; letter-spacing: 0.8px; text-transform: uppercase;
     border: 1px solid rgba(255,255,255,0.15);
   }
   .badge-duration {
-    position: absolute; top: 10px; right: 10px; z-index: 2;
+    position: absolute; top: 10px; right: 10px; z-index: 4;
     background: rgba(0,0,0,0.82); color: #fff;
     font-size: 11px; font-weight: 600; padding: 3px 7px;
     border-radius: 5px; letter-spacing: 0.3px;
@@ -197,14 +228,14 @@
 
   /* Progress bar on thumbnail */
   .card-progress {
-    position: absolute; bottom: 0; left: 0; right: 0; z-index: 3;
+    position: absolute; bottom: 0; left: 0; right: 0; z-index: 5;
     height: 3px; background: rgba(255,255,255,0.15);
   }
   .card-progress-bar { height: 100%; background: #e63939; border-radius: 1px; }
 
   /* Bottom overlay content */
   .card-overlay {
-    position: absolute; bottom: 0; left: 0; right: 0; z-index: 2;
+    position: absolute; bottom: 0; left: 0; right: 0; z-index: 3;
     padding: 10px 12px 12px;
     display: flex; align-items: flex-end; gap: 10px;
   }
@@ -232,7 +263,7 @@
     text-shadow: 0 1px 4px rgba(0,0,0,0.5);
   }
   .card-menu-btn {
-    position: absolute; bottom: 12px; right: 10px; z-index: 3;
+    position: absolute; bottom: 12px; right: 10px; z-index: 5;
     background: none; border: none; color: rgba(255,255,255,0.5);
     cursor: pointer; padding: 4px;
   }
