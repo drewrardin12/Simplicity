@@ -498,21 +498,28 @@ function buildChannelPills(cat, selected) {
 
 async function fetchRSS(channelId) {
   const ytUrl = `https://www.youtube.com/feeds/videos.xml?channel_id=${channelId}`;
+  const enc = encodeURIComponent(ytUrl);
   const proxies = [
     `https://proxy.corsfix.com/?${ytUrl}`,
-    `https://corsproxy.io/?url=${encodeURIComponent(ytUrl)}`,
-    `https://api.allorigins.win/raw?url=${encodeURIComponent(ytUrl)}`,
-    `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(ytUrl)}`,
+    `https://corsproxy.io/?url=${enc}`,
+    `https://api.allorigins.win/raw?url=${enc}`,
+    `https://api.codetabs.com/v1/proxy?quest=${enc}`,
   ];
-  for (const url of proxies) {
-    try {
-      const controller = new AbortController();
-      setTimeout(() => controller.abort(), 9000);
-      const res = await fetch(url, { signal: controller.signal });
-      if (!res.ok) continue;
-      const text = await res.text();
-      if (text && text.length > 200 && text.includes('<entry>')) return text;
-    } catch { continue; }
+  // Try each proxy twice before giving up
+  for (let attempt = 0; attempt < 2; attempt++) {
+    for (const url of proxies) {
+      try {
+        const controller = new AbortController();
+        const t = setTimeout(() => controller.abort(), 12000);
+        const res = await fetch(url, { signal: controller.signal });
+        clearTimeout(t);
+        if (!res.ok) continue;
+        const text = await res.text();
+        if (text && text.length > 200 && text.includes('<entry>')) return text;
+      } catch { continue; }
+    }
+    // Small pause before retry
+    if (attempt === 0) await new Promise(r => setTimeout(r, 1000));
   }
   return null;
 }
