@@ -670,25 +670,43 @@ async function fetchWithProxy(url) {
   return null;
 }
 
+function parseRSS(xml, channel, category) {
+  return Array.from(xml.querySelectorAll('entry')).slice(0, 8).map(entry => {
+    const videoId = entry.querySelector('videoId')?.textContent || entry.querySelector('id')?.textContent?.split(':').pop();
+    const seconds = entry.querySelector('content')?.getAttribute('duration') || entry.querySelector('duration')?.getAttribute('seconds') || null;
+    return {
+      id: videoId,
+      title: entry.querySelector('title')?.textContent || '',
+      thumbnail: `https://i.ytimg.com/vi/${videoId}/mqdefault.jpg`,
+      channelName: channel.name,
+      category,
+      publishedAt: entry.querySelector('published')?.textContent || '',
+      seconds,
+    };
+  });
+}
+
 async function fetchChannelVideos(channel) {
   try {
-    const contents = await fetchWithProxy(`https://www.youtube.com/feeds/videos.xml?channel_id=${channel.id}`);
-    if (!contents) return [];
-    const xml = new DOMParser().parseFromString(contents, 'text/xml');
-    return Array.from(xml.querySelectorAll('entry')).slice(0, 15).map((entry, idx) => {
-      const videoId = entry.querySelector('videoId')?.textContent || entry.querySelector('id')?.textContent?.split(':').pop();
-      const seconds = entry.querySelector('content')?.getAttribute('duration') || entry.querySelector('duration')?.getAttribute('seconds') || null;
-      return {
-        id: videoId,
-        title: entry.querySelector('title')?.textContent || '',
-        thumbnail: `https://i.ytimg.com/vi/${videoId}/mqdefault.jpg`,
-        channelName: channel.name,
-        category: channel.category,
-        publishedAt: entry.querySelector('published')?.textContent || '',
-        seconds,
-        entryIndex: idx,
-      };
-    });
+    // UULF = videos only (no shorts), UUSH = shorts only
+    const noShortsId = channel.id.replace(/^UC/, 'UULF');
+    const shortsOnlyId = channel.id.replace(/^UC/, 'UUSH');
+
+    const [regularContents, shortsContents] = await Promise.all([
+      fetchWithProxy(`https://www.youtube.com/feeds/videos.xml?playlist_id=${noShortsId}`),
+      fetchWithProxy(`https://www.youtube.com/feeds/videos.xml?playlist_id=${shortsOnlyId}`),
+    ]);
+
+    const results = [];
+    if (regularContents) {
+      const xml = new DOMParser().parseFromString(regularContents, 'text/xml');
+      results.push(...parseRSS(xml, channel, channel.category));
+    }
+    if (shortsContents) {
+      const xml = new DOMParser().parseFromString(shortsContents, 'text/xml');
+      results.push(...parseRSS(xml, channel, 'Shorts & Other'));
+    }
+    return results;
   } catch { return []; }
 }
 
