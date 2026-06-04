@@ -399,11 +399,7 @@ const CHANNELS = [
 ];
 
 const CATEGORIES = ['Golf', 'Packers', 'Sports Talk', 'Shorts & Other'];
-const PROXIES = [
-  { url: 'https://api.allorigins.win/get?url=', json: true },
-  { url: 'https://corsproxy.io/?', json: false },
-  { url: 'https://api.codetabs.com/v1/proxy?quest=', json: false },
-];
+// Uses our own Netlify serverless function — always fresh, no third-party caching
 
 let allVideos = [];
 let activeCategory = 'All';
@@ -500,24 +496,23 @@ function buildChannelPills(cat, selected) {
   });
 }
 
-async function fetchWithProxy(url) {
-  for (const proxy of PROXIES) {
-    try {
-      const controller = new AbortController();
-      const timeout = setTimeout(() => controller.abort(), 8000);
-      const res = await fetch(proxy.url + encodeURIComponent(url), { signal: controller.signal });
-      clearTimeout(timeout);
-      if (!res.ok) continue;
-      return proxy.json ? (await res.json()).contents : await res.text();
-    } catch { continue; }
-  }
-  return null;
+async function fetchRSS(channelId) {
+  try {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 10000);
+    const res = await fetch(`/.netlify/functions/rss?id=${channelId}`, {
+      signal: controller.signal,
+      headers: { 'Cache-Control': 'no-cache' }
+    });
+    clearTimeout(timeout);
+    if (!res.ok) return null;
+    return await res.text();
+  } catch { return null; }
 }
 
 async function fetchChannelVideos(channel) {
   try {
-    const cacheBust = Math.floor(Date.now() / (5 * 60 * 1000)); // changes every 5 min
-    const contents = await fetchWithProxy(`https://www.youtube.com/feeds/videos.xml?channel_id=${channel.id}&_cb=${cacheBust}`);
+    const contents = await fetchRSS(channel.id);
     if (!contents) return [];
     const xml = new DOMParser().parseFromString(contents, 'text/xml');
     // No date filter — show everything the RSS returns, sorted by date
