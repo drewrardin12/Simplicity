@@ -772,7 +772,12 @@ function renderFeed() {
   const query = document.getElementById('search').value.toLowerCase().trim();
   const watched = getWatched();
   let filtered = allVideos;
-  if (activeCategory !== 'All') filtered = filtered.filter(v => v.category === activeCategory);
+  if (activeCategory === 'All') {
+    // All tab excludes Shorts & Other
+    filtered = filtered.filter(v => v.category !== 'Shorts & Other');
+  } else {
+    filtered = filtered.filter(v => v.category === activeCategory);
+  }
   if (activeChannel !== 'All') filtered = filtered.filter(v => v.channelName === activeChannel);
   if (query) filtered = filtered.filter(v => v.title.toLowerCase().includes(query));
   // Apply per-channel limit unless showAll
