@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Simplicity</title>
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+  @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=DM+Sans:wght@300;400;500;600&display=swap');
 
   :root {
     --bg: #111111;
@@ -26,7 +26,7 @@
   body {
     background: var(--bg);
     color: var(--text);
-    font-family: 'Inter', sans-serif;
+    font-family: 'DM Sans', sans-serif;
     min-height: 100vh;
     padding-bottom: calc(var(--nav-h) + env(safe-area-inset-bottom));
     overflow-x: hidden;
@@ -48,11 +48,13 @@
   }
   .header-left { display: flex; flex-direction: column; gap: 2px; }
   header h1 {
-    font-size: 22px;
-    font-weight: 700;
-    letter-spacing: 0.5px;
+    font-size: 26px;
+    font-weight: 600;
+    letter-spacing: 3px;
     color: var(--text);
     line-height: 1;
+    font-family: 'Cormorant Garamond', serif;
+    text-transform: uppercase;
   }
   .header-subtitle {
     font-size: 12px;
@@ -88,7 +90,7 @@
     border-radius: 10px;
     padding: 10px 12px 10px 36px;
     color: var(--text);
-    font-family: 'Inter', sans-serif;
+    font-family: 'DM Sans', sans-serif;
     font-size: 14px;
     width: 100%;
     outline: none;
@@ -182,7 +184,7 @@
     transition: all 0.15s;
     white-space: nowrap;
     background: transparent;
-    font-family: 'Inter', sans-serif;
+    font-family: 'DM Sans', sans-serif;
   }
   .ch-pill.active {
     background: var(--text);
@@ -224,7 +226,7 @@
     cursor: pointer;
     background: none;
     border: none;
-    font-family: 'Inter', sans-serif;
+    font-family: 'DM Sans', sans-serif;
   }
   .continue-scroll {
     display: flex;
@@ -418,7 +420,7 @@
     border-bottom: 1px solid var(--border);
     display: flex; align-items: center; justify-content: space-between;
   }
-  .drawer-title { font-size: 16px; font-weight: 700; color: var(--text); }
+  .drawer-title { font-size: 18px; font-weight: 600; color: var(--text); font-family: 'Cormorant Garamond', serif; letter-spacing: 2px; text-transform: uppercase; }
   .drawer-close { background: none; border: none; color: var(--text3); cursor: pointer; padding: 4px; }
   .drawer-body { overflow-y: auto; flex: 1; padding: 8px 0 20px; }
   .drawer-category {
@@ -437,7 +439,7 @@
     background: var(--border); flex-shrink: 0; transition: background 0.15s;
   }
   .drawer-channel.active .drawer-ch-dot { background: var(--text); }
-  .drawer-ch-name { font-size: 14px; font-weight: 500; color: var(--text2); font-family: 'Inter', sans-serif; }
+  .drawer-ch-name { font-size: 14px; font-weight: 500; color: var(--text2); font-family: 'DM Sans', sans-serif; }
   .drawer-channel.active .drawer-ch-name { color: var(--text); }
 
   /* PLAYER MODAL */
@@ -519,7 +521,7 @@
       Packers
     </button>
     <button class="nav-item" onclick="selectCategory('Sports Talk', this)">
-      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="9" y="2" width="6" height="10" rx="3"/><path d="M5 10a7 7 0 0 0 14 0"/><line x1="12" y1="17" x2="12" y2="21"/><line x1="8" y1="21" x2="16" y2="21"/></svg>
       Sports
     </button>
     <button class="nav-item" onclick="selectCategory('Other', this)">
@@ -710,7 +712,7 @@ function renderContinue() {
   if (!list.length) { section.style.display = 'none'; return; }
   section.style.display = 'block';
   document.getElementById('continue-scroll').innerHTML = list.map(v => `
-    <div class="continue-card" onclick="openPlayer('${v.id}',${JSON.stringify(v.title)},'${v.channelName}')">
+    <div class="continue-card" data-vid="${v.id}">
       <div class="continue-thumb-wrap">
         <img class="continue-thumb" src="${v.thumbnail}" alt="">
       </div>
@@ -733,7 +735,8 @@ function renderFeed() {
   feed.innerHTML = filtered.map(v => {
     const isWatched = !!watched[v.id];
     const newVid = isNew(v.publishedAt);
-    return `<div class="video-card${isWatched ? ' watched' : ''}" onclick="openPlayer('${v.id}',${JSON.stringify(v.title)},'${v.channelName}')">
+    const safeId = v.id;
+    return `<div class="video-card${isWatched ? ' watched' : ''}" data-vid="${safeId}">
       <div class="thumb-wrap">
         <img src="${v.thumbnail}" alt="" loading="lazy">
         ${newVid && !isWatched ? '<div class="new-badge">NEW</div>' : ''}
@@ -745,11 +748,20 @@ function renderFeed() {
         <div class="card-title">${v.title}</div>
         <div class="card-meta">${timeAgo(v.publishedAt)}</div>
       </div>
-      <button class="card-menu" onclick="event.stopPropagation()">
+      <button class="card-menu" data-menu="true">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="5" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="12" cy="19" r="1"/></svg>
       </button>
     </div>`;
   }).join('');
+
+  // Attach click handlers after render
+  feed.querySelectorAll('.video-card').forEach(card => {
+    card.addEventListener('click', (e) => {
+      if (e.target.closest('[data-menu]')) return;
+      const vid = allVideos.find(v => v.id === card.dataset.vid);
+      if (vid) openPlayer(vid.id, vid.title, vid.channelName);
+    });
+  });
 }
 
 function openPlayer(videoId, title, channelName) {
