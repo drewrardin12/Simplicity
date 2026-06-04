@@ -129,19 +129,28 @@
   /* MOVIE POSTER CARDS */
   .video-card {
     position: relative;
-    border-radius: 14px;
+    border-radius: 16px;
     overflow: hidden;
     cursor: pointer;
     background: var(--surface);
     transition: opacity 0.2s, transform 0.15s;
-    border: 1px solid transparent;
+    /* Glassy edge sheen - subtle highlight on corners/edges, no solid border */
+    box-shadow:
+      inset 0 1px 0 rgba(255,255,255,0.08),
+      inset 1px 0 0 rgba(255,255,255,0.04),
+      inset -1px 0 0 rgba(255,255,255,0.02),
+      0 2px 12px rgba(0,0,0,0.4);
   }
   .video-card.is-new {
-    border-color: rgba(34, 197, 94, 0.35);
-    box-shadow: 0 0 16px rgba(34, 197, 94, 0.12);
+    box-shadow:
+      inset 0 1px 0 rgba(255,255,255,0.1),
+      inset 1px 0 0 rgba(34,197,94,0.15),
+      inset -1px 0 0 rgba(34,197,94,0.08),
+      0 0 20px rgba(34,197,94,0.1),
+      0 2px 12px rgba(0,0,0,0.4);
   }
-  .video-card.watched { opacity: 0.45; }
-  .video-card:active { transform: scale(0.98); }
+  .video-card.watched { opacity: 0.4; }
+  .video-card:active { transform: scale(0.985); }
 
   .card-thumb-wrap {
     position: relative;
@@ -477,6 +486,8 @@ const PROXIES = [
 let allVideos = [];
 let activeCategory = 'All';
 let activeChannel = 'All';
+let showAll = false;
+const INITIAL_LIMIT = 5;
 
 // Channel initials for badge
 function getInitials(name) {
@@ -582,7 +593,10 @@ function buildChannelPills(cat, selected) {
 async function fetchWithProxy(url) {
   for (const proxy of PROXIES) {
     try {
-      const res = await fetch(proxy.url + encodeURIComponent(url));
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 8000);
+      const res = await fetch(proxy.url + encodeURIComponent(url), { signal: controller.signal });
+      clearTimeout(timeout);
       if (!res.ok) continue;
       if (proxy.json) {
         const json = await res.json();
@@ -600,7 +614,7 @@ async function fetchChannelVideos(channel) {
     const contents = await fetchWithProxy(`https://www.youtube.com/feeds/videos.xml?channel_id=${channel.id}`);
     if (!contents) return [];
     const xml = new DOMParser().parseFromString(contents, 'text/xml');
-    return Array.from(xml.querySelectorAll('entry')).slice(0, 15).map(entry => {
+    return Array.from(xml.querySelectorAll('entry')).slice(0, 15).map((entry, idx) => {
       const videoId = entry.querySelector('videoId')?.textContent || entry.querySelector('id')?.textContent?.split(':').pop();
       const seconds = entry.querySelector('content')?.getAttribute('duration') || entry.querySelector('duration')?.getAttribute('seconds') || null;
       return {
@@ -611,6 +625,7 @@ async function fetchChannelVideos(channel) {
         category: channel.category,
         publishedAt: entry.querySelector('published')?.textContent || '',
         seconds,
+        entryIndex: idx,
       };
     });
   } catch { return []; }
@@ -681,10 +696,37 @@ function renderFeed() {
   if (activeCategory !== 'All') filtered = filtered.filter(v => v.category === activeCategory);
   if (activeChannel !== 'All') filtered = filtered.filter(v => v.channelName === activeChannel);
   if (query) filtered = filtered.filter(v => v.title.toLowerCase().includes(query));
+  // Apply per-channel limit unless showAll
+  let displayed = filtered;
+  if (!showAll) {
+    const seen = {};
+    displayed = filtered.filter(v => {
+      seen[v.channelName] = (seen[v.channelName] || 0) + 1;
+      return seen[v.channelName] <= INITIAL_LIMIT;
+    });
+  }
+
   document.getElementById('video-count').textContent = `${filtered.length} videos`;
   if (!filtered.length) { feed.innerHTML = '<div class="empty">No videos found.</div>'; return; }
   feed.innerHTML = '';
-  filtered.forEach(v => feed.appendChild(buildCard(v, watched)));
+  displayed.forEach(v => feed.appendChild(buildCard(v, watched)));
+
+  // Load more button
+  if (!showAll && displayed.length < filtered.length) {
+    const btn = document.createElement('button');
+    btn.id = 'load-more-btn';
+    btn.textContent = `Load More (${filtered.length - displayed.length} more videos)`;
+    btn.style.cssText = `
+      display: block; width: 100%; margin: 8px 0 16px;
+      padding: 14px; background: transparent;
+      border: 1px solid #333; border-radius: 12px;
+      color: #aaa; font-family: 'DM Sans', sans-serif;
+      font-size: 14px; font-weight: 500; cursor: pointer;
+      transition: all 0.2s; letter-spacing: 0.3px;
+    `;
+    btn.addEventListener('click', () => { showAll = true; renderFeed(); });
+    feed.appendChild(btn);
+  }
 }
 
 function openPlayer(videoId, title, channelName) {
@@ -709,6 +751,7 @@ function closePlayer() {
 function selectCategory(cat, el) {
   activeCategory = cat;
   activeChannel = 'All';
+  showAll = false;
   document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
   el.classList.add('active');
   buildChannelPills(cat, 'All');
@@ -721,17 +764,19 @@ function showSkeletons() {
 }
 
 async function loadVideos() {
-  const batchSize = 4;
-  let allResults = [];
-  for (let i = 0; i < CHANNELS.length; i += batchSize) {
-    const batch = CHANNELS.slice(i, i + batchSize);
-    const results = await Promise.allSettled(batch.map(fetchChannelVideos));
-    allResults = allResults.concat(results);
-    if (i + batchSize < CHANNELS.length) await new Promise(r => setTimeout(r, 300));
-  }
-  allVideos = allResults.flatMap(r => r.status === 'fulfilled' ? r.value : [])
-    .sort((a, b) => new Date(b.publishedAt) - new Date(a.publishedAt));
-  renderFeed();
+  allVideos = [];
+  document.getElementById('video-count').textContent = 'Loading...';
+
+  // Each channel resolves independently and updates feed as it comes in
+  const promises = CHANNELS.map(channel =>
+    fetchChannelVideos(channel).then(videos => {
+      allVideos = [...allVideos, ...videos]
+        .sort((a, b) => new Date(b.publishedAt) - new Date(a.publishedAt));
+      renderFeed();
+    }).catch(() => {})
+  );
+
+  await Promise.allSettled(promises);
 }
 
 // Pull to refresh
