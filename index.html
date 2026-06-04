@@ -677,6 +677,21 @@ async function loadVideos() {
   document.getElementById('video-count').textContent = 'Loading...';
   const promises = CHANNELS.map(channel =>
     fetchChannelVideos(channel).then(videos => {
+      if (videos.length === 0) {
+        // Retry once after 3 seconds for failed channels
+        setTimeout(() => {
+          fetchChannelVideos(channel).then(retried => {
+            if (retried.length > 0) {
+              const seen = new Set(allVideos.map(v => v.id));
+              const fresh = retried.filter(v => !seen.has(v.id));
+              allVideos = [...allVideos, ...fresh]
+                .sort((a, b) => new Date(b.publishedAt) - new Date(a.publishedAt));
+              renderFeed();
+            }
+          }).catch(() => {});
+        }, 3000);
+        return;
+      }
       // Deduplicate by video ID
       const seen = new Set(allVideos.map(v => v.id));
       const fresh = videos.filter(v => !seen.has(v.id));
