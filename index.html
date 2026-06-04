@@ -26,40 +26,8 @@
     color: var(--text);
     font-family: 'DM Sans', sans-serif;
     min-height: 100vh;
-    padding-bottom: calc(var(--nav-h) + 16px + env(safe-area-inset-bottom));
+    padding-bottom: calc(var(--nav-h) + 40px + env(safe-area-inset-bottom));
     overflow-x: hidden;
-  }
-
-  .feed-container { position: relative; }
-
-  /* Fade overlay pinned just below header */
-  .fade-top {
-    position: fixed;
-    top: 0;
-    left: 0; right: 0;
-    height: 160px;
-    pointer-events: none;
-    z-index: 98;
-    background: linear-gradient(to bottom,
-      var(--bg) 0%,
-      rgba(4,4,6,0.85) 40%,
-      transparent 100%
-    );
-  }
-
-  /* Fade overlay pinned just above nav */
-  .fade-bottom {
-    position: fixed;
-    bottom: 0;
-    left: 0; right: 0;
-    height: 160px;
-    pointer-events: none;
-    z-index: 198;
-    background: linear-gradient(to top,
-      var(--bg) 0%,
-      rgba(4,4,6,0.85) 40%,
-      transparent 100%
-    );
   }
 
   /* HEADER */
@@ -70,55 +38,49 @@
     background: var(--bg);
     z-index: 100;
   }
-  .header-top {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 12px;
-  }
+  .header-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
   .header-left { display: flex; align-items: baseline; gap: 10px; }
   header h1 {
     font-family: 'Cormorant Garamond', serif;
-    font-size: 26px;
-    font-weight: 600;
-    letter-spacing: 3px;
-    color: var(--text);
-    line-height: 1;
-    text-transform: uppercase;
+    font-size: 26px; font-weight: 600; letter-spacing: 3px;
+    color: var(--text); line-height: 1; text-transform: uppercase;
   }
   .header-subtitle { font-size: 12px; color: var(--text3); font-weight: 400; }
   .hamburger {
-    width: 36px; height: 36px;
-    background: var(--surface);
-    border: none; border-radius: 50%;
-    cursor: pointer;
+    width: 36px; height: 36px; background: var(--surface);
+    border: none; border-radius: 50%; cursor: pointer;
     display: flex; align-items: center; justify-content: center;
   }
   .hamburger svg { color: var(--text2); }
-
   .search-wrap { position: relative; }
   #search {
-    background: var(--surface);
-    border: none; border-radius: 10px;
-    padding: 10px 12px 10px 36px;
-    color: var(--text);
-    font-family: 'DM Sans', sans-serif;
-    font-size: 14px; width: 100%; outline: none;
+    background: var(--surface); border: none; border-radius: 10px;
+    padding: 10px 12px 10px 36px; color: var(--text);
+    font-family: 'DM Sans', sans-serif; font-size: 14px; width: 100%; outline: none;
   }
   #search::placeholder { color: var(--text3); }
   .search-icon { position: absolute; left: 11px; top: 50%; transform: translateY(-50%); color: var(--text3); }
 
+  /* SCROLL FADES — sit above header/nav using pointer-events:none */
+  .fade-top {
+    position: fixed; top: 0; left: 0; right: 0;
+    height: 140px; pointer-events: none; z-index: 101;
+    background: linear-gradient(to bottom, var(--bg) 0%, var(--bg) 30%, rgba(4,4,6,0.7) 65%, transparent 100%);
+  }
+  .fade-bottom {
+    position: fixed; bottom: 0; left: 0; right: 0;
+    height: 160px; pointer-events: none; z-index: 201;
+    background: linear-gradient(to top, var(--bg) 0%, var(--bg) 30%, rgba(4,4,6,0.7) 65%, transparent 100%);
+  }
+
   /* BOTTOM NAV */
   .bottom-nav {
     position: fixed; bottom: 0; left: 0; right: 0;
-    background: var(--bg);
-    border-top: 1px solid var(--border);
-    z-index: 200;
-    padding-bottom: env(safe-area-inset-bottom);
+    background: var(--bg); border-top: 1px solid var(--border);
+    z-index: 200; padding-bottom: env(safe-area-inset-bottom);
   }
   .channel-pills-nav {
-    display: none; gap: 8px;
-    padding: 8px 16px 0;
+    display: none; gap: 8px; padding: 8px 16px 0;
     overflow-x: auto; scrollbar-width: none;
   }
   .channel-pills-nav.visible { display: flex; }
@@ -127,10 +89,9 @@
   .nav-item {
     flex: 1; display: flex; flex-direction: column;
     align-items: center; justify-content: center; gap: 5px;
-    cursor: pointer; color: var(--text3);
-    font-size: 10px; font-weight: 500; letter-spacing: 0.2px;
-    transition: color 0.2s; border: none; background: none; padding: 8px 0;
-    position: relative;
+    cursor: pointer; color: var(--text3); font-size: 10px; font-weight: 500;
+    letter-spacing: 0.2px; transition: color 0.2s; border: none; background: none;
+    padding: 8px 0; position: relative;
   }
   .nav-item.active { color: var(--text); }
   .nav-item.active::after {
@@ -153,100 +114,44 @@
   .ptr-indicator.visible { display: block; }
 
   /* FEED */
-  .feed {
-    padding: 12px 16px;
-    display: flex; flex-direction: column; gap: 12px;
-  }
+  .feed { padding: 12px 16px; display: flex; flex-direction: column; gap: 12px; }
 
-  /* MOVIE POSTER CARDS — black glass tile with light catching the corner */
+  /* CARDS */
   .video-card {
-    position: relative;
-    border-radius: 16px;
-    overflow: hidden;
-    cursor: pointer;
-    background: var(--surface);
+    position: relative; border-radius: 16px; overflow: hidden;
+    cursor: pointer; background: var(--surface);
     transition: opacity 0.2s, transform 0.15s;
-    /* Neutral translucent border — just enough to define the edge */
     border: 1px solid rgba(255,255,255,0.06);
-    /* Layered shadows for depth: raised off background */
     box-shadow:
-      /* Top bevel — faint light catching top edge */
       inset 0 1px 0 rgba(255,255,255,0.09),
-      /* Left bevel — very subtle */
       inset 1px 0 0 rgba(255,255,255,0.04),
-      /* Bottom inner shadow — card base sits in slight darkness */
       inset 0 -2px 8px rgba(0,0,0,0.45),
-      /* Outer lift shadow */
       0 2px 8px rgba(0,0,0,0.5),
       0 8px 32px rgba(0,0,0,0.4);
   }
-  /* Frosted glass sheen — diagonal light across top-left */
   .video-card::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    z-index: 1;
-    pointer-events: none;
-    background: linear-gradient(
-      145deg,
-      rgba(255,255,255,0.045) 0%,
-      transparent 40%
-    );
+    content: ''; position: absolute; inset: 0; z-index: 1; pointer-events: none;
+    background: linear-gradient(145deg, rgba(255,255,255,0.045) 0%, transparent 40%);
   }
-  /* Emerald light leak — localized radial glow, bottom-right only */
   .video-card::after {
-    content: '';
-    position: absolute;
-    bottom: -20px;
-    right: -20px;
-    width: 55%;
-    height: 55%;
-    z-index: 1;
-    pointer-events: none;
-    background: radial-gradient(
-      ellipse at bottom right,
-      rgba(34,197,94,0.11) 0%,
-      rgba(34,197,94,0.04) 40%,
-      transparent 70%
-    );
-    border-radius: 50%;
-    filter: blur(12px);
+    content: ''; position: absolute; bottom: -20px; right: -20px;
+    width: 55%; height: 55%; z-index: 1; pointer-events: none;
+    background: radial-gradient(ellipse at bottom right, rgba(34,197,94,0.11) 0%, rgba(34,197,94,0.04) 40%, transparent 70%);
+    border-radius: 50%; filter: blur(12px);
   }
   .video-card.is-new::after {
-    background: radial-gradient(
-      ellipse at bottom right,
-      rgba(34,197,94,0.18) 0%,
-      rgba(34,197,94,0.07) 40%,
-      transparent 70%
-    );
+    background: radial-gradient(ellipse at bottom right, rgba(34,197,94,0.18) 0%, rgba(34,197,94,0.07) 40%, transparent 70%);
   }
   .video-card.watched { opacity: 0.38; }
   .video-card:active { transform: scale(0.985); }
 
-  .card-thumb-wrap {
-    position: relative;
-    width: 100%;
-    padding-top: 56.25%;
-  }
-  .card-thumb-wrap img {
-    position: absolute; inset: 0;
-    width: 100%; height: 100%; object-fit: cover;
-  }
-  /* Dark gradient overlay at bottom */
+  .card-thumb-wrap { position: relative; width: 100%; padding-top: 56.25%; }
+  .card-thumb-wrap img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
   .card-thumb-wrap::after {
-    content: '';
-    position: absolute; inset: 0;
-    background: linear-gradient(
-      to bottom,
-      transparent 25%,
-      rgba(0,0,0,0.35) 55%,
-      rgba(0,0,0,0.95) 100%
-    );
-    pointer-events: none;
-    z-index: 1;
+    content: ''; position: absolute; inset: 0;
+    background: linear-gradient(to bottom, transparent 25%, rgba(0,0,0,0.35) 55%, rgba(0,0,0,0.95) 100%);
+    pointer-events: none; z-index: 1;
   }
-
-  /* Badges on thumbnail */
   .badge-new {
     position: absolute; top: 10px; left: 10px; z-index: 4;
     background: var(--new); color: #fff;
@@ -266,30 +171,21 @@
     font-size: 11px; font-weight: 600; padding: 3px 7px;
     border-radius: 5px; letter-spacing: 0.3px;
   }
-
-  /* Progress bar on thumbnail */
   .card-progress {
     position: absolute; bottom: 0; left: 0; right: 0; z-index: 5;
     height: 3px; background: rgba(255,255,255,0.15);
   }
   .card-progress-bar { height: 100%; background: #e63939; border-radius: 1px; }
-
-  /* Bottom overlay content */
   .card-overlay {
     position: absolute; bottom: 0; left: 0; right: 0; z-index: 3;
-    padding: 10px 12px 12px;
-    display: flex; align-items: flex-end; gap: 10px;
+    padding: 10px 12px 12px; display: flex; align-items: flex-end; gap: 10px;
   }
   .channel-badge {
-    flex-shrink: 0;
-    width: 34px; height: 34px; border-radius: 50%;
-    background: var(--surface2);
-    border: 1.5px solid rgba(255,255,255,0.2);
+    flex-shrink: 0; width: 34px; height: 34px; border-radius: 50%;
+    background: var(--surface2); border: 1.5px solid rgba(255,255,255,0.2);
     display: flex; align-items: center; justify-content: center;
     font-size: 11px; font-weight: 700; color: var(--text);
-    overflow: hidden;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
+    text-transform: uppercase; letter-spacing: 0.5px;
   }
   .card-text { flex: 1; min-width: 0; }
   .card-channel-line {
@@ -297,119 +193,75 @@
     text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 3px;
   }
   .card-title-overlay {
-    font-size: 15px; font-weight: 600; color: #fff;
-    line-height: 1.3;
-    display: -webkit-box; -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical; overflow: hidden;
+    font-size: 15px; font-weight: 600; color: #fff; line-height: 1.3;
+    display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
     text-shadow: 0 1px 4px rgba(0,0,0,0.5);
   }
   .card-menu-btn {
     position: absolute; bottom: 12px; right: 10px; z-index: 5;
-    background: none; border: none; color: rgba(255,255,255,0.5);
-    cursor: pointer; padding: 4px;
+    background: none; border: none; color: rgba(255,255,255,0.5); cursor: pointer; padding: 4px;
   }
 
   /* SKELETONS */
-  .skeleton-card {
-    border-radius: 14px; overflow: hidden;
-    background: var(--surface); border: 1px solid var(--border);
-  }
+  .skeleton-card { border-radius: 14px; overflow: hidden; background: var(--surface); border: 1px solid var(--border); }
   .skeleton-thumb {
     width: 100%; padding-top: 56.25%;
     background: linear-gradient(90deg, #1c1c1c 25%, #242424 50%, #1c1c1c 75%);
     background-size: 200% 100%; animation: shimmer 1.4s infinite;
   }
   @keyframes shimmer { to { background-position: -200% 0; } }
-
   .empty { text-align: center; padding: 60px 20px; color: var(--text3); font-size: 14px; }
 
   /* DRAWER */
-  .drawer-overlay {
-    display: none; position: fixed; inset: 0;
-    background: rgba(0,0,0,0.7); z-index: 300;
-  }
+  .drawer-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 300; }
   .drawer-overlay.open { display: block; }
   .drawer {
-    position: fixed; top: 0; right: -100%;
-    width: 80%; max-width: 300px; height: 100%;
+    position: fixed; top: 0; right: -100%; width: 80%; max-width: 300px; height: 100%;
     background: var(--surface); z-index: 400;
-    transition: right 0.28s cubic-bezier(0.4,0,0.2,1);
-    display: flex; flex-direction: column;
+    transition: right 0.28s cubic-bezier(0.4,0,0.2,1); display: flex; flex-direction: column;
   }
   .drawer.open { right: 0; }
   .drawer-header {
-    padding: 20px 16px 14px;
-    border-bottom: 1px solid var(--border);
+    padding: 20px 16px 14px; border-bottom: 1px solid var(--border);
     display: flex; align-items: center; justify-content: space-between;
   }
   .drawer-title {
-    font-family: 'Cormorant Garamond', serif;
-    font-size: 18px; font-weight: 600; color: var(--text);
-    letter-spacing: 2px; text-transform: uppercase;
+    font-family: 'Cormorant Garamond', serif; font-size: 18px; font-weight: 600;
+    color: var(--text); letter-spacing: 2px; text-transform: uppercase;
   }
   .drawer-close { background: none; border: none; color: var(--text3); cursor: pointer; padding: 4px; }
   .drawer-body { overflow-y: auto; flex: 1; padding: 8px 0 20px; }
-
   .drawer-section-btn {
-    display: flex; align-items: center; gap: 12px;
-    padding: 13px 16px; cursor: pointer; transition: background 0.15s;
-    border: none; background: none; width: 100%; text-align: left;
-    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; gap: 12px; padding: 13px 16px;
+    cursor: pointer; transition: background 0.15s; border: none; background: none;
+    width: 100%; text-align: left; border-bottom: 1px solid var(--border);
   }
   .drawer-section-btn:active { background: var(--surface2); }
   .drawer-section-icon { color: var(--text3); }
-  .drawer-section-name {
-    font-size: 14px; font-weight: 500; color: var(--text2);
-    font-family: 'DM Sans', sans-serif;
-  }
-
-  .drawer-category {
-    padding: 12px 16px 4px;
-    font-size: 10px; text-transform: uppercase; letter-spacing: 2px;
-    color: var(--text3); font-weight: 600;
-  }
+  .drawer-section-name { font-size: 14px; font-weight: 500; color: var(--text2); font-family: 'DM Sans', sans-serif; }
+  .drawer-category { padding: 12px 16px 4px; font-size: 10px; text-transform: uppercase; letter-spacing: 2px; color: var(--text3); font-weight: 600; }
   .drawer-channel {
-    display: flex; align-items: center; gap: 10px;
-    padding: 11px 16px; cursor: pointer; transition: background 0.15s;
-    border: none; background: none; width: 100%; text-align: left;
+    display: flex; align-items: center; gap: 10px; padding: 11px 16px;
+    cursor: pointer; transition: background 0.15s; border: none; background: none; width: 100%; text-align: left;
   }
   .drawer-channel:active { background: var(--surface2); }
   .drawer-channel.active { background: rgba(255,255,255,0.05); }
-  .drawer-ch-dot {
-    width: 6px; height: 6px; border-radius: 50%;
-    background: var(--border); flex-shrink: 0; transition: background 0.15s;
-  }
+  .drawer-ch-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--border); flex-shrink: 0; }
   .drawer-channel.active .drawer-ch-dot { background: var(--text); }
   .drawer-ch-name { font-size: 14px; font-weight: 500; color: var(--text2); font-family: 'DM Sans', sans-serif; }
   .drawer-channel.active .drawer-ch-name { color: var(--text); }
 
   /* HISTORY PANEL */
-  .history-panel {
-    display: none; position: fixed; inset: 0;
-    background: var(--bg); z-index: 500; flex-direction: column;
-  }
+  .history-panel { display: none; position: fixed; inset: 0; background: var(--bg); z-index: 500; flex-direction: column; }
   .history-panel.open { display: flex; }
-  .history-header {
-    padding: 20px 16px 14px;
-    border-bottom: 1px solid var(--border);
-    display: flex; align-items: center; gap: 12px;
-  }
+  .history-header { padding: 20px 16px 14px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 12px; }
   .history-back { background: none; border: none; color: var(--text); cursor: pointer; padding: 4px; }
-  .history-title {
-    font-family: 'Cormorant Garamond', serif;
-    font-size: 20px; font-weight: 600; color: var(--text);
-    letter-spacing: 2px; text-transform: uppercase;
-  }
+  .history-title { font-family: 'Cormorant Garamond', serif; font-size: 20px; font-weight: 600; color: var(--text); letter-spacing: 2px; text-transform: uppercase; }
   .history-body { overflow-y: auto; flex: 1; padding: 12px 16px; display: flex; flex-direction: column; gap: 12px; }
   .history-empty { text-align: center; padding: 60px 20px; color: var(--text3); font-size: 14px; }
 
-  /* PLAYER MODAL */
-  .player-modal {
-    display: none; position: fixed; inset: 0;
-    background: #000; z-index: 1000;
-    flex-direction: column;
-    justify-content: center;
-  }
+  /* PLAYER */
+  .player-modal { display: none; position: fixed; inset: 0; background: #000; z-index: 1000; flex-direction: column; justify-content: center; }
   .player-modal.open { display: flex; }
   .player-modal-header { padding: 16px 16px 12px; display: flex; align-items: flex-start; gap: 12px; }
   .player-close { background: none; border: none; color: var(--text); cursor: pointer; padding: 4px; flex-shrink: 0; }
@@ -443,7 +295,9 @@
   </div>
 </header>
 
-<!-- Drawer -->
+<div class="fade-top"></div>
+<div class="fade-bottom"></div>
+
 <div class="drawer-overlay" id="drawer-overlay" onclick="closeDrawer()"></div>
 <div class="drawer" id="drawer">
   <div class="drawer-header">
@@ -453,7 +307,6 @@
     </button>
   </div>
   <div class="drawer-body">
-    <!-- History button -->
     <button class="drawer-section-btn" onclick="openHistory()">
       <svg class="drawer-section-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
       <span class="drawer-section-name">Watch History</span>
@@ -462,7 +315,6 @@
   </div>
 </div>
 
-<!-- History Panel -->
 <div class="history-panel" id="history-panel">
   <div class="history-header">
     <button class="history-back" onclick="closeHistory()">
@@ -473,12 +325,9 @@
   <div class="history-body" id="history-body"></div>
 </div>
 
-<div class="fade-top"></div>
-<div class="fade-bottom"></div>
 <div class="ptr-indicator" id="ptr">Refreshing...</div>
-<div class="feed-container"><div class="feed" id="feed"></div></div>
+<div class="feed" id="feed"></div>
 
-<!-- Bottom Nav -->
 <nav class="bottom-nav">
   <div class="channel-pills-nav" id="channel-pills-nav"></div>
   <div class="nav-tabs">
@@ -488,10 +337,8 @@
     </button>
     <button class="nav-item" onclick="selectCategory('Golf', this)">
       <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
-        <!-- Flag on pole -->
         <line x1="12" y1="3" x2="12" y2="18"/>
         <polygon points="12,3 19,7 12,11" fill="currentColor" stroke="none"/>
-        <!-- Ground/hole -->
         <ellipse cx="10" cy="20" rx="5" ry="1.5"/>
       </svg>
       Golf
@@ -511,7 +358,6 @@
   </div>
 </nav>
 
-<!-- Player Modal -->
 <div class="player-modal" id="player-modal">
   <div class="player-modal-header">
     <button class="player-close" onclick="closePlayer()">
@@ -562,15 +408,10 @@ const PROXIES = [
 let allVideos = [];
 let activeCategory = 'All';
 let activeChannel = 'All';
-let showAll = false;
-const INITIAL_LIMIT = 5;
 
-// Channel initials for badge
 function getInitials(name) {
   return name.split(' ').map(w => w[0]).join('').slice(0,2).toUpperCase();
 }
-
-// Storage
 function getWatched() { try { return JSON.parse(localStorage.getItem('sw_watched') || '{}'); } catch { return {}; } }
 function markWatched(id) { const w = getWatched(); w[id] = Date.now(); try { localStorage.setItem('sw_watched', JSON.stringify(w)); } catch {} }
 function getContinue() { try { return JSON.parse(localStorage.getItem('sw_continue') || '[]'); } catch { return []; } }
@@ -580,7 +421,6 @@ function addToContinue(video) {
   try { localStorage.setItem('sw_continue', JSON.stringify(list.slice(0, 20))); } catch {}
 }
 
-// Drawer
 function openDrawer() {
   buildDrawerChannels();
   document.getElementById('drawer').classList.add('open');
@@ -616,8 +456,8 @@ function jumpToChannel(channelName) {
     activeCategory = ch.category;
     activeChannel = channelName;
     document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-    const idx = ['All','Golf','Packers','Sports Talk','Other'].indexOf(ch.category);
-    document.querySelectorAll('.nav-item')[idx]?.classList.add('active');
+    const cats = ['All','Golf','Packers','Sports Talk','Shorts & Other'];
+    document.querySelectorAll('.nav-item')[cats.indexOf(ch.category)]?.classList.add('active');
     buildChannelPills(ch.category, channelName);
   }
   closeDrawer();
@@ -625,7 +465,6 @@ function jumpToChannel(channelName) {
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
-// History
 function openHistory() {
   closeDrawer();
   const list = getContinue();
@@ -634,10 +473,7 @@ function openHistory() {
     body.innerHTML = '<div class="history-empty">No watch history yet.</div>';
   } else {
     body.innerHTML = '';
-    list.forEach(v => {
-      const card = buildCard(v, getWatched());
-      body.appendChild(card);
-    });
+    list.forEach(v => body.appendChild(buildCard(v, getWatched())));
   }
   document.getElementById('history-panel').classList.add('open');
   document.body.style.overflow = 'hidden';
@@ -647,7 +483,6 @@ function closeHistory() {
   document.body.style.overflow = '';
 }
 
-// Channel pills
 function buildChannelPills(cat, selected) {
   const row = document.getElementById('channel-pills-nav');
   if (!cat || cat === 'All') { row.classList.remove('visible'); return; }
@@ -665,7 +500,6 @@ function buildChannelPills(cat, selected) {
   });
 }
 
-// Proxy fetch
 async function fetchWithProxy(url) {
   for (const proxy of PROXIES) {
     try {
@@ -674,76 +508,65 @@ async function fetchWithProxy(url) {
       const res = await fetch(proxy.url + encodeURIComponent(url), { signal: controller.signal });
       clearTimeout(timeout);
       if (!res.ok) continue;
-      if (proxy.json) {
-        const json = await res.json();
-        return json.contents;
-      } else {
-        return await res.text();
-      }
+      return proxy.json ? (await res.json()).contents : await res.text();
     } catch { continue; }
   }
   return null;
 }
 
-const SEVEN_DAYS = 7 * 24 * 60 * 60 * 1000;
-
-async function fetchChannelVideos(channel, maxAgeDays = 7) {
+async function fetchChannelVideos(channel) {
   try {
     const contents = await fetchWithProxy(`https://www.youtube.com/feeds/videos.xml?channel_id=${channel.id}`);
     if (!contents) return [];
     const xml = new DOMParser().parseFromString(contents, 'text/xml');
-    const cutoff = Date.now() - (maxAgeDays * 24 * 60 * 60 * 1000);
-    const all = Array.from(xml.querySelectorAll('entry')).map(entry => {
-      const videoId = entry.querySelector('videoId')?.textContent || entry.querySelector('id')?.textContent?.split(':').pop();
-      const seconds = entry.querySelector('content')?.getAttribute('duration') || entry.querySelector('duration')?.getAttribute('seconds') || null;
-      const title = entry.querySelector('title')?.textContent || '';
-      const publishedAt = entry.querySelector('published')?.textContent || '';
-      // Detect shorts by hashtag in title only (most reliable without API)
-      const isShort = title.toLowerCase().includes('#short');
-      return {
-        id: videoId, title,
-        thumbnail: `https://i.ytimg.com/vi/${videoId}/mqdefault.jpg`,
-        channelName: channel.name,
-        category: isShort ? 'Shorts & Other' : channel.category,
-        publishedAt, seconds, isShort,
-      };
-    });
-    // Return only videos within the cutoff window
-    return all.filter(v => new Date(v.publishedAt).getTime() >= cutoff);
+    const cutoff = Date.now() - (14 * 24 * 60 * 60 * 1000); // 14 days
+    return Array.from(xml.querySelectorAll('entry'))
+      .map(entry => {
+        const videoId = entry.querySelector('videoId')?.textContent || entry.querySelector('id')?.textContent?.split(':').pop();
+        const seconds = entry.querySelector('content')?.getAttribute('duration') || entry.querySelector('duration')?.getAttribute('seconds') || null;
+        const title = entry.querySelector('title')?.textContent || '';
+        const publishedAt = entry.querySelector('published')?.textContent || '';
+        // Shorts: vertical thumbnail aspect, #shorts tag, or ≤ 60s
+        const isShort = title.toLowerCase().includes('#short') || (seconds && parseInt(seconds) <= 60);
+        return {
+          id: videoId, title,
+          thumbnail: `https://i.ytimg.com/vi/${videoId}/mqdefault.jpg`,
+          channelName: channel.name,
+          category: isShort ? 'Shorts & Other' : channel.category,
+          publishedAt, seconds, isShort,
+        };
+      })
+      .filter(v => new Date(v.publishedAt).getTime() >= cutoff);
   } catch { return []; }
 }
 
 function formatDuration(s) {
   if (!s) return null;
   s = parseInt(s);
-  const h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60), sec = s % 60;
+  const h = Math.floor(s/3600), m = Math.floor((s%3600)/60), sec = s%60;
   if (h > 0) return `${h}:${String(m).padStart(2,'0')}:${String(sec).padStart(2,'0')}`;
   return `${m}:${String(sec).padStart(2,'0')}`;
 }
-
-function timeAgo(dateStr) {
-  const diff = Date.now() - new Date(dateStr).getTime();
-  const mins = Math.floor(diff / 60000);
-  if (mins < 60) return `${mins}m ago`;
-  const hrs = Math.floor(mins / 60);
-  if (hrs < 24) return `${hrs}h ago`;
-  const days = Math.floor(hrs / 24);
+function timeAgo(d) {
+  const diff = Date.now() - new Date(d).getTime();
+  const m = Math.floor(diff/60000);
+  if (m < 60) return `${m}m ago`;
+  const h = Math.floor(m/60);
+  if (h < 24) return `${h}h ago`;
+  const days = Math.floor(h/24);
   if (days < 30) return `${days}d ago`;
-  return `${Math.floor(days / 30)}mo ago`;
+  return `${Math.floor(days/30)}mo ago`;
 }
-
-function isNew(dateStr) { return Date.now() - new Date(dateStr).getTime() < 24 * 60 * 60 * 1000; }
+function isNew(d) { return Date.now() - new Date(d).getTime() < 24*60*60*1000; }
 
 function buildCard(v, watched) {
   const isWatched = !!watched[v.id];
   const newVid = isNew(v.publishedAt);
   const dur = formatDuration(v.seconds);
   const inProgress = getContinue().find(c => c.id === v.id);
-
   const card = document.createElement('div');
   card.className = `video-card${isWatched ? ' watched' : ''}${newVid && !isWatched ? ' is-new' : ''}`;
   card.dataset.vid = v.id;
-
   card.innerHTML = `
     <div class="card-thumb-wrap">
       <img src="${v.thumbnail}" alt="" loading="lazy">
@@ -762,8 +585,7 @@ function buildCard(v, watched) {
     <button class="card-menu-btn" data-menu="true">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="5" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="12" cy="19" r="1"/></svg>
     </button>`;
-
-  card.addEventListener('click', (e) => {
+  card.addEventListener('click', e => {
     if (e.target.closest('[data-menu]')) return;
     openPlayer(v.id, v.title, v.channelName);
   });
@@ -776,18 +598,16 @@ function renderFeed() {
   const watched = getWatched();
   let filtered = allVideos;
   if (activeCategory === 'All') {
-    // All tab excludes Shorts & Other
     filtered = filtered.filter(v => v.category !== 'Shorts & Other');
   } else {
     filtered = filtered.filter(v => v.category === activeCategory);
   }
   if (activeChannel !== 'All') filtered = filtered.filter(v => v.channelName === activeChannel);
   if (query) filtered = filtered.filter(v => v.title.toLowerCase().includes(query));
+  // Always sort newest first
+  filtered.sort((a, b) => new Date(b.publishedAt) - new Date(a.publishedAt));
   document.getElementById('video-count').textContent = `${filtered.length} videos`;
-  if (!filtered.length) {
-    feed.innerHTML = '<div class="empty">No videos in the last 7 days.</div>';
-    return;
-  }
+  if (!filtered.length) { feed.innerHTML = '<div class="empty">No videos in the last 14 days.</div>'; return; }
   feed.innerHTML = '';
   filtered.forEach(v => feed.appendChild(buildCard(v, watched)));
 }
@@ -804,7 +624,6 @@ function openPlayer(videoId, title, channelName) {
   if (video) addToContinue(video);
   renderFeed();
 }
-
 function closePlayer() {
   document.getElementById('player-modal').classList.remove('open');
   document.getElementById('player-iframe').src = '';
@@ -814,10 +633,18 @@ function closePlayer() {
 function selectCategory(cat, el) {
   activeCategory = cat;
   activeChannel = 'All';
-  showAll = false;
   document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
   el.classList.add('active');
   buildChannelPills(cat, 'All');
+  renderFeed();
+}
+
+function goToAll() {
+  activeCategory = 'All';
+  activeChannel = 'All';
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('nav-all').classList.add('active');
+  document.getElementById('channel-pills-nav').classList.remove('visible');
   renderFeed();
 }
 
@@ -829,8 +656,6 @@ function showSkeletons() {
 async function loadVideos() {
   allVideos = [];
   document.getElementById('video-count').textContent = 'Loading...';
-
-  // Each channel resolves independently and updates feed as it comes in
   const promises = CHANNELS.map(channel =>
     fetchChannelVideos(channel).then(videos => {
       allVideos = [...allVideos, ...videos]
@@ -838,11 +663,9 @@ async function loadVideos() {
       renderFeed();
     }).catch(() => {})
   );
-
   await Promise.allSettled(promises);
 }
 
-// Pull to refresh
 let touchStartY = 0, isPulling = false;
 document.addEventListener('touchstart', e => { if (window.scrollY === 0) touchStartY = e.touches[0].clientY; }, { passive: true });
 document.addEventListener('touchmove', e => {
@@ -859,32 +682,16 @@ document.addEventListener('touchend', async () => {
   touchStartY = 0;
 });
 
-// Swipe back from player or filter = go to All
 let playerTouchStartX = 0;
 document.getElementById('player-modal').addEventListener('touchstart', e => {
   playerTouchStartX = e.touches[0].clientX;
 }, { passive: true });
 document.getElementById('player-modal').addEventListener('touchend', e => {
   const dx = e.changedTouches[0].clientX - playerTouchStartX;
-  if (dx > 80 && playerTouchStartX < 40) {
-    closePlayer();
-    goToAll();
-  }
+  if (dx > 80 && playerTouchStartX < 40) { closePlayer(); goToAll(); }
 });
-
-function goToAll() {
-  activeCategory = 'All';
-  activeChannel = 'All';
-  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-  document.getElementById('nav-all').classList.add('active');
-  document.getElementById('channel-pills-nav').classList.remove('visible');
-  renderFeed();
-}
-
 window.addEventListener('popstate', () => {
-  if (document.getElementById('player-modal').classList.contains('open')) {
-    closePlayer(); goToAll();
-  }
+  if (document.getElementById('player-modal').classList.contains('open')) { closePlayer(); goToAll(); }
 });
 
 showSkeletons();
