@@ -10,14 +10,12 @@
   :root {
     --bg: #0a0a0a;
     --surface: #141414;
-    --surface2: #1a1a1a;
     --border: #222;
     --text: #f0f0f0;
-    --muted: #666;
+    --muted: #555;
     --accent: #e8c840;
-    --accent2: #c9a b00;
     --new: #4caf7d;
-    --watched: #444;
+    --nav-h: 64px;
   }
 
   * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -27,49 +25,37 @@
     color: var(--text);
     font-family: 'DM Sans', sans-serif;
     min-height: 100vh;
-    overflow-x: hidden;
+    padding-bottom: var(--nav-h);
   }
 
+  /* HEADER */
   header {
-    padding: 20px 20px 12px;
+    padding: 18px 20px 12px;
     border-bottom: 1px solid var(--border);
     position: sticky;
     top: 0;
     background: var(--bg);
     z-index: 100;
   }
-
   .header-top {
     display: flex;
     align-items: center;
     justify-content: space-between;
     margin-bottom: 12px;
   }
-
   header h1 {
     font-family: 'Bebas Neue', sans-serif;
     font-size: 26px;
     letter-spacing: 3px;
     color: var(--accent);
   }
-
-  .header-right {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-  }
-
   #video-count {
     font-size: 11px;
     color: var(--muted);
     letter-spacing: 1px;
     text-transform: uppercase;
   }
-
-  .search-wrap {
-    position: relative;
-  }
-
+  .search-wrap { position: relative; }
   #search {
     background: var(--surface);
     border: 1px solid var(--border);
@@ -84,7 +70,6 @@
   }
   #search:focus { border-color: var(--accent); }
   #search::placeholder { color: var(--muted); }
-
   .search-icon {
     position: absolute;
     left: 10px;
@@ -93,30 +78,24 @@
     color: var(--muted);
   }
 
-  .filter-row {
-    display: flex;
+  /* CHANNEL FILTER ROW (appears when category selected) */
+  .channel-row {
+    display: none;
     gap: 8px;
-    padding: 10px 20px;
+    padding: 8px 16px;
     overflow-x: auto;
     border-bottom: 1px solid var(--border);
+    background: #0f0f0f;
     scrollbar-width: none;
   }
-  .filter-row::-webkit-scrollbar { display: none; }
-
-  #channel-bar {
-    background: #0f0f0f;
-    border-top: none;
-    padding-top: 8px;
-    padding-bottom: 8px;
-  }
-  #channel-bar .pill { font-size: 11px; padding: 4px 12px; }
-
-  .pill {
+  .channel-row.visible { display: flex; }
+  .channel-row::-webkit-scrollbar { display: none; }
+  .ch-pill {
     flex-shrink: 0;
-    padding: 6px 14px;
+    padding: 4px 12px;
     border-radius: 999px;
     border: 1px solid var(--border);
-    font-size: 12px;
+    font-size: 11px;
     font-weight: 500;
     color: var(--muted);
     cursor: pointer;
@@ -124,25 +103,60 @@
     white-space: nowrap;
     background: transparent;
   }
-  .pill.active, .pill:hover {
+  .ch-pill.active, .ch-pill:hover {
     background: var(--accent);
     color: #000;
     border-color: var(--accent);
   }
 
-  /* Pull to refresh */
+  /* BOTTOM NAV */
+  .bottom-nav {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: var(--nav-h);
+    background: #0f0f0f;
+    border-top: 1px solid var(--border);
+    display: flex;
+    align-items: stretch;
+    z-index: 200;
+  }
+  .nav-item {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    cursor: pointer;
+    color: var(--muted);
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    transition: color 0.2s;
+    border: none;
+    background: none;
+    padding: 8px 0;
+  }
+  .nav-item svg { transition: color 0.2s; }
+  .nav-item.active { color: var(--accent); }
+  .nav-item.active svg { color: var(--accent); }
+
+  /* PTR */
   .ptr-indicator {
     text-align: center;
-    padding: 12px;
+    padding: 10px;
     color: var(--muted);
-    font-size: 12px;
+    font-size: 11px;
     display: none;
     letter-spacing: 1px;
     text-transform: uppercase;
   }
   .ptr-indicator.visible { display: block; }
 
-  /* Continue watching */
+  /* CONTINUE WATCHING */
   .continue-section {
     padding: 16px 20px 0;
     max-width: 700px;
@@ -150,7 +164,7 @@
     display: none;
   }
   .continue-section h2 {
-    font-size: 11px;
+    font-size: 10px;
     text-transform: uppercase;
     letter-spacing: 2px;
     color: var(--muted);
@@ -168,7 +182,6 @@
     flex-shrink: 0;
     width: 140px;
     cursor: pointer;
-    position: relative;
   }
   .continue-thumb {
     width: 140px;
@@ -199,6 +212,7 @@
     overflow: hidden;
   }
 
+  /* FEED */
   .feed {
     padding: 16px 20px;
     display: flex;
@@ -214,9 +228,8 @@
     overflow: hidden;
     border: 1px solid var(--border);
     transition: transform 0.2s, opacity 0.2s;
-    position: relative;
   }
-  .video-card.watched { opacity: 0.6; }
+  .video-card.watched { opacity: 0.55; }
   .video-card:hover { transform: translateY(-2px); }
 
   .thumb-wrap {
@@ -257,9 +270,7 @@
     font-weight: 600;
     padding: 2px 6px;
     border-radius: 4px;
-    letter-spacing: 0.3px;
   }
-
   .new-badge {
     position: absolute;
     top: 8px;
@@ -273,7 +284,6 @@
     letter-spacing: 1px;
     text-transform: uppercase;
   }
-
   .watched-badge {
     position: absolute;
     top: 8px;
@@ -283,36 +293,9 @@
     font-size: 10px;
     padding: 2px 7px;
     border-radius: 4px;
-    letter-spacing: 0.5px;
-  }
-
-  .embed-wrap {
-    position: relative;
-    width: 100%;
-    padding-top: 56.25%;
-    display: none;
-  }
-  .embed-wrap iframe {
-    position: absolute;
-    inset: 0;
-    width: 100%;
-    height: 100%;
-    border: none;
   }
 
   .card-info { padding: 10px 14px 12px; }
-  .card-top {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 2px;
-  }
-  .card-category {
-    font-size: 10px;
-    color: var(--muted);
-    text-transform: uppercase;
-    letter-spacing: 1px;
-  }
   .card-channel {
     font-size: 11px;
     color: var(--accent);
@@ -326,11 +309,11 @@
     font-weight: 500;
     line-height: 1.4;
     color: var(--text);
-    margin-bottom: 6px;
+    margin-bottom: 5px;
   }
   .card-meta { font-size: 11px; color: var(--muted); }
 
-  /* Skeleton loading */
+  /* SKELETONS */
   .skeleton {
     background: var(--surface);
     border-radius: 10px;
@@ -353,15 +336,14 @@
     animation: shimmer 1.4s infinite;
     margin-bottom: 8px;
   }
-  .skeleton-line.short { width: 40%; }
-  .skeleton-line.medium { width: 70%; }
-  .skeleton-line.long { width: 90%; }
+  .skeleton-line.short { width: 35%; }
+  .skeleton-line.medium { width: 65%; }
+  .skeleton-line.long { width: 88%; }
   @keyframes shimmer { to { background-position: -200% 0; } }
 
-  .error { text-align: center; padding: 40px 20px; color: #e05; font-size: 13px; }
   .empty { text-align: center; padding: 60px 20px; color: var(--muted); font-size: 14px; }
 
-  /* Full screen player modal */
+  /* PLAYER MODAL */
   .player-modal {
     display: none;
     position: fixed;
@@ -376,7 +358,6 @@
     display: flex;
     align-items: flex-start;
     gap: 12px;
-    background: #000;
   }
   .player-close {
     background: none;
@@ -387,19 +368,8 @@
     flex-shrink: 0;
     margin-top: 2px;
   }
-  .player-title {
-    font-size: 14px;
-    font-weight: 500;
-    line-height: 1.4;
-    color: var(--text);
-  }
-  .player-channel {
-    font-size: 11px;
-    color: var(--accent);
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    margin-top: 2px;
-  }
+  .player-title { font-size: 14px; font-weight: 500; line-height: 1.4; color: var(--text); }
+  .player-channel { font-size: 11px; color: var(--accent); text-transform: uppercase; letter-spacing: 0.5px; margin-top: 2px; }
   .player-frame-wrap {
     position: relative;
     width: 100%;
@@ -427,8 +397,7 @@
   </div>
 </header>
 
-<div class="filter-row" id="cat-bar"></div>
-<div class="filter-row" id="channel-bar" style="display:none"></div>
+<div class="channel-row" id="channel-row"></div>
 
 <div class="ptr-indicator" id="ptr">Refreshing...</div>
 
@@ -439,7 +408,31 @@
 
 <div class="feed" id="feed"></div>
 
-<!-- Full screen player -->
+<!-- Bottom Nav -->
+<nav class="bottom-nav">
+  <button class="nav-item active" id="nav-all" onclick="selectCategory('All', this)">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+    All
+  </button>
+  <button class="nav-item" id="nav-golf" onclick="selectCategory('Golf', this)">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="7" r="3"/><path d="M12 10v11M9 21h6"/><path d="M17 4l2-1"/></svg>
+    Golf
+  </button>
+  <button class="nav-item" id="nav-packers" onclick="selectCategory('Packers', this)">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><ellipse cx="12" cy="12" rx="9" ry="6" transform="rotate(-30 12 12)"/><path d="M6.5 8.5l11 7M8 6.5l8 11"/></svg>
+    Packers
+  </button>
+  <button class="nav-item" id="nav-sports" onclick="selectCategory('Sports Talk', this)">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+    Sports Talk
+  </button>
+  <button class="nav-item" id="nav-other" onclick="selectCategory('Other', this)">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+    Other
+  </button>
+</nav>
+
+<!-- Player Modal -->
 <div class="player-modal" id="player-modal">
   <div class="player-modal-header">
     <button class="player-close" onclick="closePlayer()">
@@ -457,41 +450,48 @@
 
 <script>
 const CHANNELS = [
-  { name: 'Bob Does Sports',    id: 'UCqr4sONkmFEOPc3rfoVLEvg', category: 'Golf' },
-  { name: 'Grant Horvat',       id: 'UC_3WB1wfJaItIiN2RJsRMOw', category: 'Golf' },
-  { name: 'Locked On Packers',  id: 'UCufUP6i_pdfTjqVEswITOmw', category: 'Packers' },
-  { name: 'Pack-A-Day Podcast', id: 'UCSGx5Pq0zA_7O726M3JEptA', category: 'Packers' },
-  { name: 'Cheesehead TV',      id: 'UCMzR22wVc2Ru8Hz0fsVzkIQ', category: 'Packers' },
-  { name: 'SidelineScoop',      id: 'UCk42R8SfxN9S0rXCs3M6PJg', category: 'Packers' },
-  { name: 'Basaraski',          id: 'UCd9L1l2Odu2cND3ILHiuJQQ', category: 'Packers' },
-  { name: 'Go Pack Show',       id: 'UCi7MwcGY2NkYNTDP60nlmTA', category: 'Packers' },
-  { name: 'Green Bay Packers',  id: 'UCJtI-l6La0zniodFtSHYrBg', category: 'Packers' },
-  { name: 'Le Batard Show',     id: 'UCAIZ314ffmfM4PynCR8vElw', category: 'Sports Talk' },
+  // Golf
+  { name: 'Bob Does Sports',     id: 'UCqr4sONkmFEOPc3rfoVLEvg', category: 'Golf' },
+  { name: 'Bob Does Sports Pod', id: 'UCNgebo9LnovieD353k-YRag',  category: 'Golf' },
+  { name: 'Grant Horvat',        id: 'UCgUueMmSpcl-aCTt5CuCKQw', category: 'Golf' },
+  { name: 'Grant Horvat 2',      id: 'UCjw5RoGW4zG-zNpc5v8oFxA', category: 'Golf' },
+  { name: 'Golf Digest',         id: 'UClBd3yC3TBTICIZqujCk1Hw', category: 'Golf' },
+  { name: 'Shane Oh Golf',       id: 'UCXSpdCC9PKlul28Yiq4OdnA', category: 'Golf' },
+  // Packers
+  { name: 'Locked On Packers',   id: 'UCufUP6i_pdfTjqVEswITOmw', category: 'Packers' },
+  { name: 'Pack-A-Day Podcast',  id: 'UCSGx5Pq0zA_7O726M3JEptA', category: 'Packers' },
+  { name: 'Cheesehead TV',       id: 'UCMzR22wVc2Ru8Hz0fsVzkIQ', category: 'Packers' },
+  { name: 'SidelineScoop',       id: 'UCk42R8SfxN9S0rXCs3M6PJg', category: 'Packers' },
+  { name: 'Basaraski',           id: 'UCd9L1l2Odu2cND3ILHiuJQQ', category: 'Packers' },
+  { name: 'Go Pack Show',        id: 'UCi7MwcGY2NkYNTDP60nlmTA', category: 'Packers' },
+  { name: 'Green Bay Packers',   id: 'UCJtI-l6La0zniodFtSHYrBg', category: 'Packers' },
+  // Sports Talk
+  { name: 'Le Batard Show',      id: 'UCAIZ314ffmfM4PynCR8vElw', category: 'Sports Talk' },
+  { name: 'Locked On White Sox', id: 'UCcvbtp567XlaGyMs8w_DTFA', category: 'Sports Talk' },
+  { name: 'Andrew Fenichel',     id: 'UCenGh_r6mAm8uvnso5JWVjA', category: 'Sports Talk' },
+  // Other
+  { name: 'History at Night',    id: 'UCKDRru3yD00CpqKZRs69vWg', category: 'Other' },
 ];
 
-const CATEGORIES = ['All', 'Golf', 'Packers', 'Sports Talk'];
 const PROXY = 'https://api.allorigins.win/get?url=';
-
 let allVideos = [];
 let activeCategory = 'All';
 let activeChannel = 'All';
 
-// Persist watched videos and continue watching in localStorage
 function getWatched() {
-  try { return JSON.parse(localStorage.getItem('watched') || '{}'); } catch { return {}; }
+  try { return JSON.parse(localStorage.getItem('sw_watched') || '{}'); } catch { return {}; }
 }
 function markWatched(id) {
   const w = getWatched(); w[id] = Date.now();
-  try { localStorage.setItem('watched', JSON.stringify(w)); } catch {}
+  try { localStorage.setItem('sw_watched', JSON.stringify(w)); } catch {}
 }
 function getContinue() {
-  try { return JSON.parse(localStorage.getItem('continueWatching') || '[]'); } catch { return []; }
+  try { return JSON.parse(localStorage.getItem('sw_continue') || '[]'); } catch { return []; }
 }
 function addToContinue(video) {
   let list = getContinue().filter(v => v.id !== video.id);
   list.unshift(video);
-  list = list.slice(0, 8);
-  try { localStorage.setItem('continueWatching', JSON.stringify(list)); } catch {}
+  try { localStorage.setItem('sw_continue', JSON.stringify(list.slice(0, 8))); } catch {}
 }
 
 async function fetchChannelVideos(channel) {
@@ -499,33 +499,19 @@ async function fetchChannelVideos(channel) {
     const rssUrl = encodeURIComponent(`https://www.youtube.com/feeds/videos.xml?channel_id=${channel.id}`);
     const res = await fetch(`${PROXY}${rssUrl}`);
     const json = await res.json();
-    const parser = new DOMParser();
-    const xml = parser.parseFromString(json.contents, 'text/xml');
-    const entries = Array.from(xml.querySelectorAll('entry')).slice(0, 8);
-    return entries.map(entry => {
-      const videoId = entry.querySelector('videoId')?.textContent ||
-                      entry.querySelector('id')?.textContent?.split(':').pop();
-      const published = entry.querySelector('published')?.textContent || '';
-      const title = entry.querySelector('title')?.textContent || '';
-      const duration = entry.querySelector('duration')?.getAttribute('seconds') || null;
+    const xml = new DOMParser().parseFromString(json.contents, 'text/xml');
+    return Array.from(xml.querySelectorAll('entry')).slice(0, 8).map(entry => {
+      const videoId = entry.querySelector('videoId')?.textContent || entry.querySelector('id')?.textContent?.split(':').pop();
       return {
-        id: videoId, title,
+        id: videoId,
+        title: entry.querySelector('title')?.textContent || '',
         thumbnail: `https://i.ytimg.com/vi/${videoId}/mqdefault.jpg`,
-        channelName: channel.name, category: channel.category,
-        publishedAt: published, duration
+        channelName: channel.name,
+        category: channel.category,
+        publishedAt: entry.querySelector('published')?.textContent || '',
       };
     });
   } catch { return []; }
-}
-
-function formatDuration(seconds) {
-  if (!seconds) return null;
-  const s = parseInt(seconds);
-  const h = Math.floor(s / 3600);
-  const m = Math.floor((s % 3600) / 60);
-  const sec = s % 60;
-  if (h > 0) return `${h}:${String(m).padStart(2,'0')}:${String(sec).padStart(2,'0')}`;
-  return `${m}:${String(sec).padStart(2,'0')}`;
 }
 
 function timeAgo(dateStr) {
@@ -550,9 +536,9 @@ function renderContinue() {
   if (!list.length) { section.style.display = 'none'; return; }
   section.style.display = 'block';
   scroll.innerHTML = list.map(v => `
-    <div class="continue-card" onclick="openPlayer('${v.id}', '${v.title.replace(/'/g,"\\'")}', '${v.channelName}')">
+    <div class="continue-card" onclick="openPlayer('${v.id}', ${JSON.stringify(v.title)}, '${v.channelName}')">
       <img class="continue-thumb" src="${v.thumbnail}" alt="">
-      <div class="continue-progress"><div class="continue-progress-bar" style="width:${v.progress||30}%"></div></div>
+      <div class="continue-progress"><div class="continue-progress-bar" style="width:40%"></div></div>
       <div class="continue-title">${v.title}</div>
     </div>
   `).join('');
@@ -562,22 +548,14 @@ function renderFeed() {
   const feed = document.getElementById('feed');
   const query = document.getElementById('search').value.toLowerCase().trim();
   const watched = getWatched();
-
   let filtered = allVideos;
   if (activeCategory !== 'All') filtered = filtered.filter(v => v.category === activeCategory);
   if (activeChannel !== 'All') filtered = filtered.filter(v => v.channelName === activeChannel);
   if (query) filtered = filtered.filter(v => v.title.toLowerCase().includes(query));
-
   document.getElementById('video-count').textContent = `${filtered.length} videos`;
-
-  if (!filtered.length) {
-    feed.innerHTML = '<div class="empty">No videos found.</div>';
-    return;
-  }
-
+  if (!filtered.length) { feed.innerHTML = '<div class="empty">No videos found.</div>'; return; }
   feed.innerHTML = filtered.map(v => {
     const isWatched = !!watched[v.id];
-    const dur = formatDuration(v.duration);
     return `
     <div class="video-card${isWatched ? ' watched' : ''}">
       <div class="thumb-wrap" onclick="openPlayer('${v.id}', ${JSON.stringify(v.title)}, '${v.channelName}')">
@@ -588,20 +566,16 @@ function renderFeed() {
             <polygon points="32,24 60,40 32,56" fill="white"/>
           </svg>
         </div>
-        ${dur ? `<div class="duration-badge">${dur}</div>` : ''}
         ${isNew(v.publishedAt) ? '<div class="new-badge">New</div>' : ''}
         ${isWatched ? '<div class="watched-badge">Watched</div>' : ''}
       </div>
       <div class="card-info">
-        <div class="card-top">
-          <div class="card-category">${v.category}</div>
-        </div>
         <div class="card-channel">${v.channelName}</div>
         <div class="card-title">${v.title}</div>
         <div class="card-meta">${timeAgo(v.publishedAt)}</div>
       </div>
-    </div>
-  `}).join('');
+    </div>`
+  }).join('');
 }
 
 function openPlayer(videoId, title, channelName) {
@@ -612,7 +586,7 @@ function openPlayer(videoId, title, channelName) {
   document.getElementById('player-modal').classList.add('open');
   document.body.style.overflow = 'hidden';
   markWatched(videoId);
-  if (video) addToContinue({...video, progress: 30});
+  if (video) addToContinue(video);
   renderFeed();
   renderContinue();
 }
@@ -623,40 +597,32 @@ function closePlayer() {
   document.body.style.overflow = '';
 }
 
-function buildCategoryBar() {
-  const bar = document.getElementById('cat-bar');
-  bar.innerHTML = CATEGORIES.map((cat, i) =>
-    `<button class="pill${i === 0 ? ' active' : ''}" onclick="selectCategory('${cat}', this)">${cat}</button>`
-  ).join('');
-}
-
 function selectCategory(cat, el) {
   activeCategory = cat;
   activeChannel = 'All';
-  document.querySelectorAll('#cat-bar .pill').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
   el.classList.add('active');
-  const channelBar = document.getElementById('channel-bar');
+  const row = document.getElementById('channel-row');
   if (cat === 'All') {
-    channelBar.style.display = 'none';
+    row.classList.remove('visible');
   } else {
     const channels = [...new Set(allVideos.filter(v => v.category === cat).map(v => v.channelName))];
-    channelBar.style.display = 'flex';
-    channelBar.innerHTML = `<button class="pill active" onclick="selectChannel('All', this)">All</button>` +
-      channels.map(ch => `<button class="pill" onclick="selectChannel('${ch}', this)">${ch}</button>`).join('');
+    row.innerHTML = `<button class="ch-pill active" onclick="selectChannel('All', this)">All</button>` +
+      channels.map(ch => `<button class="ch-pill" onclick="selectChannel('${ch}', this)">${ch}</button>`).join('');
+    row.classList.add('visible');
   }
   renderFeed();
 }
 
 function selectChannel(ch, el) {
   activeChannel = ch;
-  document.querySelectorAll('#channel-bar .pill').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.ch-pill').forEach(p => p.classList.remove('active'));
   el.classList.add('active');
   renderFeed();
 }
 
 function showSkeletons() {
-  const feed = document.getElementById('feed');
-  feed.innerHTML = Array(5).fill(`
+  document.getElementById('feed').innerHTML = Array(6).fill(`
     <div class="skeleton">
       <div class="skeleton-thumb"></div>
       <div class="skeleton-info">
@@ -664,37 +630,26 @@ function showSkeletons() {
         <div class="skeleton-line medium"></div>
         <div class="skeleton-line long"></div>
       </div>
-    </div>
-  `).join('');
+    </div>`).join('');
 }
 
 async function loadVideos() {
   const results = await Promise.allSettled(CHANNELS.map(fetchChannelVideos));
-  allVideos = results
-    .flatMap(r => r.status === 'fulfilled' ? r.value : [])
+  allVideos = results.flatMap(r => r.status === 'fulfilled' ? r.value : [])
     .sort((a, b) => new Date(b.publishedAt) - new Date(a.publishedAt));
   renderFeed();
   renderContinue();
 }
 
 // Pull to refresh
-let touchStartY = 0;
-let isPulling = false;
-
-document.addEventListener('touchstart', e => {
-  if (window.scrollY === 0) touchStartY = e.touches[0].clientY;
-}, { passive: true });
-
+let touchStartY = 0, isPulling = false;
+document.addEventListener('touchstart', e => { if (window.scrollY === 0) touchStartY = e.touches[0].clientY; }, { passive: true });
 document.addEventListener('touchmove', e => {
-  if (window.scrollY === 0) {
-    const pull = e.touches[0].clientY - touchStartY;
-    if (pull > 60 && !isPulling) {
-      isPulling = true;
-      document.getElementById('ptr').classList.add('visible');
-    }
+  if (window.scrollY === 0 && e.touches[0].clientY - touchStartY > 60 && !isPulling) {
+    isPulling = true;
+    document.getElementById('ptr').classList.add('visible');
   }
 }, { passive: true });
-
 document.addEventListener('touchend', async () => {
   if (isPulling) {
     isPulling = false;
@@ -705,18 +660,12 @@ document.addEventListener('touchend', async () => {
   touchStartY = 0;
 });
 
-// Close player on back button
 window.addEventListener('popstate', () => {
   if (document.getElementById('player-modal').classList.contains('open')) closePlayer();
 });
 
-async function init() {
-  buildCategoryBar();
-  showSkeletons();
-  await loadVideos();
-}
-
-init();
+showSkeletons();
+loadVideos();
 </script>
 </body>
 </html>
