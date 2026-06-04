@@ -499,27 +499,25 @@ function buildChannelPills(cat, selected) {
 async function fetchRSS(channelId) {
   const ytUrl = `https://www.youtube.com/feeds/videos.xml?channel_id=${channelId}`;
   const enc = encodeURIComponent(ytUrl);
+
+  // RSSHub public instance serves YouTube feeds with CORS headers — always fresh
   const proxies = [
+    `https://rsshub.app/youtube/channel/${channelId}`,
     `https://proxy.corsfix.com/?${ytUrl}`,
     `https://corsproxy.io/?url=${enc}`,
     `https://api.allorigins.win/raw?url=${enc}`,
-    `https://api.codetabs.com/v1/proxy?quest=${enc}`,
   ];
-  // Try each proxy twice before giving up
-  for (let attempt = 0; attempt < 2; attempt++) {
-    for (const url of proxies) {
-      try {
-        const controller = new AbortController();
-        const t = setTimeout(() => controller.abort(), 12000);
-        const res = await fetch(url, { signal: controller.signal });
-        clearTimeout(t);
-        if (!res.ok) continue;
-        const text = await res.text();
-        if (text && text.length > 200 && text.includes('<entry>')) return text;
-      } catch { continue; }
-    }
-    // Small pause before retry
-    if (attempt === 0) await new Promise(r => setTimeout(r, 1000));
+
+  for (const url of proxies) {
+    try {
+      const controller = new AbortController();
+      const t = setTimeout(() => controller.abort(), 12000);
+      const res = await fetch(url, { signal: controller.signal });
+      clearTimeout(t);
+      if (!res.ok) continue;
+      const text = await res.text();
+      if (text && text.length > 200 && (text.includes('<entry>') || text.includes('<item>'))) return text;
+    } catch { continue; }
   }
   return null;
 }
@@ -530,21 +528,34 @@ async function fetchChannelVideos(channel) {
     if (!contents) return [];
     const xml = new DOMParser().parseFromString(contents, 'text/xml');
     // No date filter — show everything the RSS returns, sorted by date
-    return Array.from(xml.querySelectorAll('entry'))
-      .map(entry => {
-        const videoId = entry.querySelector('videoId')?.textContent || entry.querySelector('id')?.textContent?.split(':').pop();
-        const seconds = entry.querySelector('content')?.getAttribute('duration') || entry.querySelector('duration')?.getAttribute('seconds') || null;
-        const title = entry.querySelector('title')?.textContent || '';
-        const publishedAt = entry.querySelector('published')?.textContent || '';
-        const isShort = title.toLowerCase().includes('#short') || (seconds && parseInt(seconds) <= 60);
-        return {
-          id: videoId, title,
-          thumbnail: `https://i.ytimg.com/vi/${videoId}/mqdefault.jpg`,
-          channelName: channel.name,
-          category: isShort ? 'Shorts & Other' : channel.category,
-          publishedAt, seconds, isShort,
-        };
-      });
+    // Support both YouTube RSS format (<entry>) and RSSHub format (<item>)
+    const isRSSHub = !xml.querySelector('entry') && xml.querySelector('item');
+    const items = isRSSHub
+      ? Array.from(xml.querySelectorAll('item'))
+      : Array.from(xml.querySelectorAll('entry'));
+
+    return items.map(item => {
+      let videoId, title, publishedAt, seconds;
+      if (isRSSHub) {
+        const link = item.querySelector('link')?.textContent || '';
+        videoId = link.match(/v=([^&]+)/)?.[1] || link.split('/').pop();
+        title = item.querySelector('title')?.textContent || '';
+        publishedAt = item.querySelector('pubDate')?.textContent || '';
+      } else {
+        videoId = item.querySelector('videoId')?.textContent || item.querySelector('id')?.textContent?.split(':').pop();
+        title = item.querySelector('title')?.textContent || '';
+        publishedAt = item.querySelector('published')?.textContent || '';
+        seconds = item.querySelector('content')?.getAttribute('duration') || item.querySelector('duration')?.getAttribute('seconds') || null;
+      }
+      const isShort = title.toLowerCase().includes('#short') || (seconds && parseInt(seconds) <= 60);
+      return {
+        id: videoId, title,
+        thumbnail: `https://i.ytimg.com/vi/${videoId}/mqdefault.jpg`,
+        channelName: channel.name,
+        category: isShort ? 'Shorts & Other' : channel.category,
+        publishedAt, seconds, isShort,
+      };
+    });
   } catch { return []; }
 }
 
