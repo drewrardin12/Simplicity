@@ -5,35 +5,36 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Simplicity</title>
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&display=swap');
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 
   :root {
-    --bg: #0a0a0a;
-    --surface: #141414;
-    --surface2: #1a1a1a;
-    --border: #222;
-    --text: #f0f0f0;
-    --muted: #555;
-    --accent: #e8c840;
-    --new: #4caf7d;
-    --nav-h: 100px;
+    --bg: #111111;
+    --surface: #1c1c1c;
+    --surface2: #242424;
+    --border: #2a2a2a;
+    --text: #ffffff;
+    --text2: #999999;
+    --text3: #666666;
+    --accent: #ffffff;
+    --new: #22c55e;
+    --watched-bg: #2a2a2a;
+    --nav-h: 72px;
   }
 
-  * { margin: 0; padding: 0; box-sizing: border-box; }
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 
   body {
     background: var(--bg);
     color: var(--text);
-    font-family: 'DM Sans', sans-serif;
+    font-family: 'Inter', sans-serif;
     min-height: 100vh;
-    padding-bottom: var(--nav-h);
+    padding-bottom: calc(var(--nav-h) + env(safe-area-inset-bottom));
     overflow-x: hidden;
   }
 
   /* HEADER */
   header {
-    padding: 18px 20px 12px;
-    border-bottom: 1px solid var(--border);
+    padding: 16px 16px 12px;
     position: sticky;
     top: 0;
     background: var(--bg);
@@ -45,149 +46,74 @@
     justify-content: space-between;
     margin-bottom: 12px;
   }
+  .header-left { display: flex; flex-direction: column; gap: 2px; }
   header h1 {
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 26px;
-    letter-spacing: 3px;
-    color: var(--accent);
+    font-size: 22px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    color: var(--text);
+    line-height: 1;
   }
-  .header-right {
-    display: flex;
-    align-items: center;
-    gap: 14px;
-  }
-  #video-count {
-    font-size: 11px;
-    color: var(--muted);
-    letter-spacing: 1px;
-    text-transform: uppercase;
+  .header-subtitle {
+    font-size: 12px;
+    color: var(--text3);
+    font-weight: 400;
   }
   .hamburger {
-    background: none;
+    width: 36px; height: 36px;
+    background: var(--surface);
     border: none;
-    color: var(--text);
+    border-radius: 50%;
     cursor: pointer;
-    padding: 4px;
     display: flex;
-    flex-direction: column;
-    gap: 5px;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
   }
-  .hamburger span {
-    display: block;
-    width: 22px;
-    height: 2px;
-    background: var(--text);
-    border-radius: 2px;
-    transition: all 0.3s;
+  .hamburger img {
+    width: 100%; height: 100%;
+    object-fit: cover;
+    border-radius: 50%;
   }
-  .search-wrap { position: relative; }
+  .hamburger svg { color: var(--text2); }
+
+  /* SEARCH */
+  .search-wrap {
+    position: relative;
+    margin-bottom: 0;
+  }
   #search {
     background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    padding: 8px 12px 8px 34px;
+    border: none;
+    border-radius: 10px;
+    padding: 10px 12px 10px 36px;
     color: var(--text);
-    font-family: 'DM Sans', sans-serif;
-    font-size: 13px;
+    font-family: 'Inter', sans-serif;
+    font-size: 14px;
     width: 100%;
     outline: none;
-    transition: border-color 0.2s;
   }
-  #search:focus { border-color: var(--accent); }
-  #search::placeholder { color: var(--muted); }
+  #search::placeholder { color: var(--text3); }
   .search-icon {
     position: absolute;
-    left: 10px;
+    left: 11px;
     top: 50%;
     transform: translateY(-50%);
-    color: var(--muted);
+    color: var(--text3);
   }
 
-  /* DRAWER */
-  .drawer-overlay {
+  /* CHANNEL PILLS ROW */
+  .channel-pills-row {
     display: none;
-    position: fixed;
-    inset: 0;
-    background: rgba(0,0,0,0.6);
-    z-index: 300;
-    backdrop-filter: blur(2px);
-  }
-  .drawer-overlay.open { display: block; }
-  .drawer {
-    position: fixed;
-    top: 0;
-    right: -100%;
-    width: 80%;
-    max-width: 320px;
-    height: 100%;
-    background: var(--surface);
-    z-index: 400;
-    transition: right 0.3s ease;
-    display: flex;
-    flex-direction: column;
-    border-left: 1px solid var(--border);
-  }
-  .drawer.open { right: 0; }
-  .drawer-header {
-    padding: 20px 20px 16px;
+    gap: 8px;
+    padding: 10px 16px;
+    overflow-x: auto;
+    scrollbar-width: none;
     border-bottom: 1px solid var(--border);
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
+    background: var(--bg);
   }
-  .drawer-title {
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 18px;
-    letter-spacing: 2px;
-    color: var(--accent);
-  }
-  .drawer-close {
-    background: none;
-    border: none;
-    color: var(--muted);
-    cursor: pointer;
-    padding: 4px;
-  }
-  .drawer-body { overflow-y: auto; flex: 1; padding: 8px 0; }
-
-  .drawer-category {
-    padding: 10px 20px 4px;
-    font-size: 10px;
-    text-transform: uppercase;
-    letter-spacing: 2px;
-    color: var(--muted);
-  }
-  .drawer-channel {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 12px 20px;
-    cursor: pointer;
-    transition: background 0.15s;
-    border: none;
-    background: none;
-    width: 100%;
-    text-align: left;
-  }
-  .drawer-channel:hover, .drawer-channel.active {
-    background: rgba(232, 200, 64, 0.08);
-  }
-  .drawer-channel.active .drawer-ch-name { color: var(--accent); }
-  .drawer-ch-dot {
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    background: var(--border);
-    flex-shrink: 0;
-    transition: background 0.15s;
-  }
-  .drawer-channel.active .drawer-ch-dot { background: var(--accent); }
-  .drawer-ch-name {
-    font-size: 14px;
-    font-weight: 500;
-    color: var(--text);
-    transition: color 0.15s;
-  }
+  .channel-pills-row.visible { display: flex; }
+  .channel-pills-row::-webkit-scrollbar { display: none; }
 
   /* BOTTOM NAV */
   .bottom-nav {
@@ -195,14 +121,25 @@
     bottom: 0;
     left: 0;
     right: 0;
-    background: #0f0f0f;
+    background: var(--bg);
     border-top: 1px solid var(--border);
     z-index: 200;
+    padding-bottom: env(safe-area-inset-bottom);
   }
+  .channel-pills-nav {
+    display: none;
+    gap: 8px;
+    padding: 8px 16px 0;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .channel-pills-nav.visible { display: flex; }
+  .channel-pills-nav::-webkit-scrollbar { display: none; }
+
   .nav-tabs {
     display: flex;
     align-items: stretch;
-    height: 58px;
+    height: var(--nav-h);
   }
   .nav-item {
     flex: 1;
@@ -210,54 +147,54 @@
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 4px;
+    gap: 5px;
     cursor: pointer;
-    color: var(--muted);
+    color: var(--text3);
     font-size: 10px;
     font-weight: 500;
-    letter-spacing: 0.5px;
-    text-transform: uppercase;
+    letter-spacing: 0.2px;
     transition: color 0.2s;
     border: none;
     background: none;
     padding: 8px 0;
+    position: relative;
   }
-  .nav-item.active { color: var(--accent); }
+  .nav-item.active { color: var(--text); }
+  .nav-item.active::after {
+    content: '';
+    position: absolute;
+    bottom: 6px;
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background: var(--text);
+  }
 
-  .channel-pills-row {
-    display: none;
-    gap: 8px;
-    padding: 6px 16px;
-    overflow-x: auto;
-    scrollbar-width: none;
-    border-top: 1px solid var(--border);
-  }
-  .channel-pills-row.visible { display: flex; }
-  .channel-pills-row::-webkit-scrollbar { display: none; }
   .ch-pill {
     flex-shrink: 0;
-    padding: 4px 12px;
+    padding: 6px 14px;
     border-radius: 999px;
     border: 1px solid var(--border);
-    font-size: 11px;
+    font-size: 12px;
     font-weight: 500;
-    color: var(--muted);
+    color: var(--text3);
     cursor: pointer;
-    transition: all 0.2s;
+    transition: all 0.15s;
     white-space: nowrap;
     background: transparent;
+    font-family: 'Inter', sans-serif;
   }
-  .ch-pill.active, .ch-pill:hover {
-    background: var(--accent);
+  .ch-pill.active {
+    background: var(--text);
     color: #000;
-    border-color: var(--accent);
+    border-color: var(--text);
   }
 
   /* PTR */
   .ptr-indicator {
     text-align: center;
-    padding: 10px;
-    color: var(--muted);
+    padding: 8px;
+    color: var(--text3);
     font-size: 11px;
     display: none;
     letter-spacing: 1px;
@@ -267,17 +204,27 @@
 
   /* CONTINUE WATCHING */
   .continue-section {
-    padding: 16px 20px 0;
-    max-width: 700px;
-    margin: 0 auto;
+    padding: 16px 16px 0;
     display: none;
   }
-  .continue-section h2 {
-    font-size: 10px;
-    text-transform: uppercase;
-    letter-spacing: 2px;
-    color: var(--muted);
+  .continue-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
     margin-bottom: 10px;
+  }
+  .continue-section h2 {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text);
+  }
+  .see-all {
+    font-size: 12px;
+    color: var(--text3);
+    cursor: pointer;
+    background: none;
+    border: none;
+    font-family: 'Inter', sans-serif;
   }
   .continue-scroll {
     display: flex;
@@ -287,87 +234,211 @@
     padding-bottom: 4px;
   }
   .continue-scroll::-webkit-scrollbar { display: none; }
-  .continue-card { flex-shrink: 0; width: 140px; cursor: pointer; }
-  .continue-thumb {
-    width: 140px; height: 79px;
-    object-fit: cover;
-    border-radius: 6px;
-    border: 1px solid var(--border);
+  .continue-card { flex-shrink: 0; width: 150px; cursor: pointer; }
+  .continue-thumb-wrap {
+    position: relative;
+    width: 150px;
+    height: 85px;
+    border-radius: 8px;
+    overflow: hidden;
+    background: var(--surface);
   }
-  .continue-progress { height: 3px; background: var(--border); border-radius: 2px; margin-top: 4px; }
-  .continue-progress-bar { height: 100%; background: var(--accent); border-radius: 2px; }
+  .continue-thumb { width: 100%; height: 100%; object-fit: cover; }
+  .continue-duration {
+    position: absolute;
+    bottom: 5px;
+    right: 5px;
+    background: rgba(0,0,0,0.85);
+    color: #fff;
+    font-size: 10px;
+    font-weight: 600;
+    padding: 2px 5px;
+    border-radius: 3px;
+  }
+  .continue-progress { height: 2px; background: var(--border); border-radius: 1px; margin-top: 5px; }
+  .continue-progress-bar { height: 100%; background: #e63939; border-radius: 1px; }
+  .continue-ch { font-size: 10px; color: var(--text3); margin-top: 5px; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600; }
   .continue-title {
-    font-size: 11px; color: var(--text); margin-top: 4px; line-height: 1.3;
+    font-size: 12px; color: var(--text); margin-top: 2px; line-height: 1.3; font-weight: 500;
     display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
   }
 
-  /* FEED */
+  /* FEED - horizontal thumbnail layout like the mockup */
   .feed {
-    padding: 16px 20px;
+    padding: 12px 16px;
     display: flex;
     flex-direction: column;
-    gap: 16px;
-    max-width: 700px;
-    margin: 0 auto;
+    gap: 0;
   }
+
   .video-card {
-    background: var(--surface);
-    border-radius: 10px;
-    overflow: hidden;
-    border: 1px solid var(--border);
-    transition: transform 0.2s, opacity 0.2s;
+    display: flex;
+    gap: 12px;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--border);
+    cursor: pointer;
+    transition: opacity 0.2s;
+    align-items: flex-start;
+    position: relative;
   }
-  .video-card.watched { opacity: 0.55; }
-  .video-card:hover { transform: translateY(-2px); }
+  .video-card:last-child { border-bottom: none; }
+  .video-card.watched { opacity: 0.5; }
+
   .thumb-wrap {
-    position: relative; width: 100%; padding-top: 56.25%;
-    cursor: pointer; background: #111;
+    position: relative;
+    flex-shrink: 0;
+    width: 120px;
+    height: 68px;
+    border-radius: 8px;
+    overflow: hidden;
+    background: var(--surface);
   }
-  .thumb-wrap img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
-  .play-overlay {
-    position: absolute; inset: 0;
-    display: flex; align-items: center; justify-content: center;
-    background: rgba(0,0,0,0.3); opacity: 0; transition: opacity 0.2s;
+  .thumb-wrap img { width: 100%; height: 100%; object-fit: cover; }
+
+  .duration-badge {
+    position: absolute;
+    bottom: 4px;
+    right: 4px;
+    background: rgba(0,0,0,0.85);
+    color: #fff;
+    font-size: 10px;
+    font-weight: 600;
+    padding: 1px 5px;
+    border-radius: 3px;
   }
-  .thumb-wrap:hover .play-overlay, .thumb-wrap:active .play-overlay { opacity: 1; }
-  .play-overlay svg { width: 52px; height: 52px; }
   .new-badge {
-    position: absolute; top: 8px; left: 8px;
-    background: var(--new); color: #fff;
-    font-size: 10px; font-weight: 700; padding: 2px 7px;
-    border-radius: 4px; letter-spacing: 1px; text-transform: uppercase;
+    position: absolute;
+    top: 4px;
+    left: 4px;
+    background: var(--new);
+    color: #fff;
+    font-size: 9px;
+    font-weight: 700;
+    padding: 2px 5px;
+    border-radius: 3px;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
   }
   .watched-badge {
-    position: absolute; top: 8px; right: 8px;
-    background: rgba(0,0,0,0.7); color: var(--muted);
-    font-size: 10px; padding: 2px 7px; border-radius: 4px;
+    position: absolute;
+    top: 4px;
+    left: 4px;
+    background: rgba(0,0,0,0.75);
+    color: var(--text3);
+    font-size: 9px;
+    font-weight: 600;
+    padding: 2px 5px;
+    border-radius: 3px;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
   }
-  .card-info { padding: 10px 14px 12px; }
+
+  .card-info {
+    flex: 1;
+    min-width: 0;
+    padding-top: 2px;
+  }
   .card-channel {
-    font-size: 11px; color: var(--accent); font-weight: 600;
-    text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px;
+    font-size: 11px;
+    color: var(--text3);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 4px;
   }
-  .card-title { font-size: 14px; font-weight: 500; line-height: 1.4; color: var(--text); margin-bottom: 5px; }
-  .card-meta { font-size: 11px; color: var(--muted); }
+  .card-title {
+    font-size: 14px;
+    font-weight: 500;
+    line-height: 1.4;
+    color: var(--text);
+    margin-bottom: 5px;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  .card-meta { font-size: 12px; color: var(--text3); }
+
+  .card-menu {
+    background: none;
+    border: none;
+    color: var(--text3);
+    cursor: pointer;
+    padding: 4px;
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
 
   /* SKELETONS */
-  .skeleton { background: var(--surface); border-radius: 10px; overflow: hidden; border: 1px solid var(--border); }
+  .skeleton-card {
+    display: flex;
+    gap: 12px;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--border);
+    align-items: flex-start;
+  }
   .skeleton-thumb {
-    width: 100%; padding-top: 56.25%;
-    background: linear-gradient(90deg, #1a1a1a 25%, #222 50%, #1a1a1a 75%);
+    flex-shrink: 0;
+    width: 120px; height: 68px;
+    border-radius: 8px;
+    background: linear-gradient(90deg, #1c1c1c 25%, #242424 50%, #1c1c1c 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.4s infinite;
+  }
+  .skeleton-info { flex: 1; padding-top: 4px; }
+  .skeleton-line {
+    height: 11px; border-radius: 5px; margin-bottom: 8px;
+    background: linear-gradient(90deg, #1c1c1c 25%, #242424 50%, #1c1c1c 75%);
     background-size: 200% 100%; animation: shimmer 1.4s infinite;
   }
-  .skeleton-info { padding: 10px 14px 12px; }
-  .skeleton-line {
-    height: 12px; border-radius: 6px;
-    background: linear-gradient(90deg, #1a1a1a 25%, #222 50%, #1a1a1a 75%);
-    background-size: 200% 100%; animation: shimmer 1.4s infinite; margin-bottom: 8px;
-  }
-  .skeleton-line.short { width: 35%; }
-  .skeleton-line.medium { width: 65%; }
-  .skeleton-line.long { width: 88%; }
+  .skeleton-line.s { width: 40%; }
+  .skeleton-line.m { width: 90%; }
+  .skeleton-line.l { width: 70%; }
+  .skeleton-line.xs { width: 25%; }
   @keyframes shimmer { to { background-position: -200% 0; } }
-  .empty { text-align: center; padding: 60px 20px; color: var(--muted); font-size: 14px; }
+
+  .empty { text-align: center; padding: 60px 20px; color: var(--text3); font-size: 14px; }
+
+  /* DRAWER */
+  .drawer-overlay {
+    display: none; position: fixed; inset: 0;
+    background: rgba(0,0,0,0.7); z-index: 300;
+  }
+  .drawer-overlay.open { display: block; }
+  .drawer {
+    position: fixed; top: 0; right: -100%;
+    width: 80%; max-width: 300px; height: 100%;
+    background: var(--surface); z-index: 400;
+    transition: right 0.28s cubic-bezier(0.4,0,0.2,1);
+    display: flex; flex-direction: column;
+  }
+  .drawer.open { right: 0; }
+  .drawer-header {
+    padding: 20px 16px 14px;
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .drawer-title { font-size: 16px; font-weight: 700; color: var(--text); }
+  .drawer-close { background: none; border: none; color: var(--text3); cursor: pointer; padding: 4px; }
+  .drawer-body { overflow-y: auto; flex: 1; padding: 8px 0 20px; }
+  .drawer-category {
+    padding: 12px 16px 4px;
+    font-size: 10px; text-transform: uppercase; letter-spacing: 2px; color: var(--text3); font-weight: 600;
+  }
+  .drawer-channel {
+    display: flex; align-items: center; gap: 10px;
+    padding: 11px 16px; cursor: pointer; transition: background 0.15s;
+    border: none; background: none; width: 100%; text-align: left;
+  }
+  .drawer-channel:active { background: var(--surface2); }
+  .drawer-channel.active { background: rgba(255,255,255,0.05); }
+  .drawer-ch-dot {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--border); flex-shrink: 0; transition: background 0.15s;
+  }
+  .drawer-channel.active .drawer-ch-dot { background: var(--text); }
+  .drawer-ch-name { font-size: 14px; font-weight: 500; color: var(--text2); font-family: 'Inter', sans-serif; }
+  .drawer-channel.active .drawer-ch-name { color: var(--text); }
 
   /* PLAYER MODAL */
   .player-modal {
@@ -375,31 +446,34 @@
     background: #000; z-index: 1000; flex-direction: column;
   }
   .player-modal.open { display: flex; }
-  .player-modal-header {
-    padding: 16px 20px;
-    display: flex; align-items: flex-start; gap: 12px;
-  }
-  .player-close { background: none; border: none; color: var(--text); cursor: pointer; padding: 4px; flex-shrink: 0; margin-top: 2px; }
-  .player-title { font-size: 14px; font-weight: 500; line-height: 1.4; color: var(--text); }
-  .player-channel { font-size: 11px; color: var(--accent); text-transform: uppercase; letter-spacing: 0.5px; margin-top: 2px; }
+  .player-modal-header { padding: 16px 16px 12px; display: flex; align-items: flex-start; gap: 12px; }
+  .player-close { background: none; border: none; color: var(--text); cursor: pointer; padding: 4px; flex-shrink: 0; }
+  .player-info { flex: 1; }
+  .player-title { font-size: 18px; font-weight: 600; line-height: 1.3; color: var(--text); margin-bottom: 4px; }
+  .player-channel { font-size: 13px; color: var(--text3); font-weight: 500; }
   .player-frame-wrap { position: relative; width: 100%; padding-top: 56.25%; }
   .player-frame-wrap iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: none; }
+  .player-watch-on {
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+    padding: 16px; color: var(--text3); font-size: 13px; cursor: pointer;
+  }
+  .player-watch-on svg { opacity: 0.6; }
 </style>
 </head>
 <body>
 
 <header>
   <div class="header-top">
-    <h1>SIMPLICITY</h1>
-    <div class="header-right">
-      <span id="video-count"></span>
-      <button class="hamburger" onclick="openDrawer()">
-        <span></span><span></span><span></span>
-      </button>
+    <div class="header-left">
+      <h1>SIMPLICITY</h1>
+      <span class="header-subtitle" id="video-count">Loading...</span>
     </div>
+    <button class="hamburger" onclick="openDrawer()" aria-label="Channels">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+    </button>
   </div>
   <div class="search-wrap">
-    <svg class="search-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+    <svg class="search-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
     <input type="search" id="search" placeholder="Search videos..." oninput="renderFeed()">
   </div>
 </header>
@@ -408,7 +482,7 @@
 <div class="drawer-overlay" id="drawer-overlay" onclick="closeDrawer()"></div>
 <div class="drawer" id="drawer">
   <div class="drawer-header">
-    <span class="drawer-title">CHANNELS</span>
+    <span class="drawer-title">Channels</span>
     <button class="drawer-close" onclick="closeDrawer()">
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg>
     </button>
@@ -416,10 +490,13 @@
   <div class="drawer-body" id="drawer-body"></div>
 </div>
 
-<div class="ptr-indicator" id="ptr">Refreshing...</div>
+<div class="ptr-indicator" id="ptr">↓ Refreshing</div>
 
 <div class="continue-section" id="continue-section">
-  <h2>Continue Watching</h2>
+  <div class="continue-header">
+    <h2>Continue Watching</h2>
+    <button class="see-all">See All</button>
+  </div>
   <div class="continue-scroll" id="continue-scroll"></div>
 </div>
 
@@ -427,26 +504,26 @@
 
 <!-- Bottom Nav -->
 <nav class="bottom-nav">
-  <div class="channel-pills-row" id="channel-pills-row"></div>
+  <div class="channel-pills-nav" id="channel-pills-nav"></div>
   <div class="nav-tabs">
     <button class="nav-item active" onclick="selectCategory('All', this)">
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
       All
     </button>
     <button class="nav-item" onclick="selectCategory('Golf', this)">
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="7" r="3"/><path d="M12 10v11M9 21h6"/><path d="M17 4l2-1"/></svg>
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="7" r="3"/><path d="M12 10v11M9 21h6"/><path d="M17 4l2-1"/></svg>
       Golf
     </button>
     <button class="nav-item" onclick="selectCategory('Packers', this)">
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><ellipse cx="12" cy="12" rx="9" ry="6" transform="rotate(-30 12 12)"/><path d="M6.5 8.5l11 7M8 6.5l8 11"/></svg>
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><ellipse cx="12" cy="12" rx="9" ry="5.5" transform="rotate(-35 12 12)"/><path d="M7 9l10 6M8.5 7l7 10"/></svg>
       Packers
     </button>
     <button class="nav-item" onclick="selectCategory('Sports Talk', this)">
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
       Sports
     </button>
     <button class="nav-item" onclick="selectCategory('Other', this)">
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg>
       Other
     </button>
   </div>
@@ -456,15 +533,20 @@
 <div class="player-modal" id="player-modal">
   <div class="player-modal-header">
     <button class="player-close" onclick="closePlayer()">
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
     </button>
-    <div>
+    <div class="player-info">
       <div class="player-title" id="player-title"></div>
       <div class="player-channel" id="player-channel"></div>
     </div>
   </div>
   <div class="player-frame-wrap">
     <iframe id="player-iframe" allowfullscreen allow="autoplay; encrypted-media"></iframe>
+  </div>
+  <div class="player-watch-on" id="player-watch-on">
+    <span>Watch on</span>
+    <svg width="60" height="14" viewBox="0 0 90 20" fill="white"><text y="16" font-size="18" font-family="Arial" font-weight="bold">YouTube</text></svg>
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
   </div>
 </div>
 
@@ -494,6 +576,7 @@ const PROXY = 'https://api.allorigins.win/get?url=';
 let allVideos = [];
 let activeCategory = 'All';
 let activeChannel = 'All';
+let currentVideoId = null;
 
 function getWatched() { try { return JSON.parse(localStorage.getItem('sw_watched') || '{}'); } catch { return {}; } }
 function markWatched(id) { const w = getWatched(); w[id] = Date.now(); try { localStorage.setItem('sw_watched', JSON.stringify(w)); } catch {} }
@@ -501,7 +584,7 @@ function getContinue() { try { return JSON.parse(localStorage.getItem('sw_contin
 function addToContinue(video) {
   let list = getContinue().filter(v => v.id !== video.id);
   list.unshift(video);
-  try { localStorage.setItem('sw_continue', JSON.stringify(list.slice(0, 15))); } catch {}
+  try { localStorage.setItem('sw_continue', JSON.stringify(list.slice(0, 8))); } catch {}
 }
 
 function openDrawer() {
@@ -515,7 +598,6 @@ function closeDrawer() {
   document.getElementById('drawer-overlay').classList.remove('open');
   document.body.style.overflow = '';
 }
-
 function buildDrawer() {
   const body = document.getElementById('drawer-body');
   let html = '';
@@ -523,8 +605,7 @@ function buildDrawer() {
     const channels = CHANNELS.filter(c => c.category === cat);
     html += `<div class="drawer-category">${cat}</div>`;
     channels.forEach(ch => {
-      const isActive = activeChannel === ch.name;
-      html += `<button class="drawer-channel${isActive ? ' active' : ''}" onclick="jumpToChannel('${ch.name}')">
+      html += `<button class="drawer-channel${activeChannel === ch.name ? ' active' : ''}" onclick="jumpToChannel('${ch.name}')">
         <div class="drawer-ch-dot"></div>
         <span class="drawer-ch-name">${ch.name}</span>
       </button>`;
@@ -532,18 +613,14 @@ function buildDrawer() {
   });
   body.innerHTML = html;
 }
-
 function jumpToChannel(channelName) {
-  // Set category to match the channel
   const ch = CHANNELS.find(c => c.name === channelName);
   if (ch) {
     activeCategory = ch.category;
     activeChannel = channelName;
-    // Update nav tabs
     document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-    const catIndex = ['All', 'Golf', 'Packers', 'Sports Talk', 'Other'].indexOf(ch.category);
-    document.querySelectorAll('.nav-item')[catIndex]?.classList.add('active');
-    // Update channel pills
+    const idx = ['All','Golf','Packers','Sports Talk','Other'].indexOf(ch.category);
+    document.querySelectorAll('.nav-item')[idx]?.classList.add('active');
     buildChannelPills(ch.category, channelName);
   }
   closeDrawer();
@@ -551,12 +628,12 @@ function jumpToChannel(channelName) {
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
-function buildChannelPills(cat, selectedChannel) {
-  const row = document.getElementById('channel-pills-row');
+function buildChannelPills(cat, selected) {
+  const row = document.getElementById('channel-pills-nav');
   if (!cat || cat === 'All') { row.classList.remove('visible'); return; }
   const channels = [...new Set(allVideos.filter(v => v.category === cat).map(v => v.channelName))];
-  row.innerHTML = `<button class="ch-pill${selectedChannel === 'All' ? ' active' : ''}" onclick="selectChannel('All', this)">All</button>` +
-    channels.map(ch => `<button class="ch-pill${selectedChannel === ch ? ' active' : ''}" onclick="selectChannel('${ch}', this)">${ch}</button>`).join('');
+  row.innerHTML = `<button class="ch-pill${selected === 'All' ? ' active' : ''}" onclick="selectChannel('All',this)">All</button>` +
+    channels.map(ch => `<button class="ch-pill${selected === ch ? ' active' : ''}" onclick="selectChannel('${ch}',this)">${ch}</button>`).join('');
   row.classList.add('visible');
 }
 
@@ -590,21 +667,20 @@ function timeAgo(dateStr) {
   if (days < 30) return `${days}d ago`;
   return `${Math.floor(days / 30)}mo ago`;
 }
-
-function isNew(dateStr) {
-  return Date.now() - new Date(dateStr).getTime() < 24 * 60 * 60 * 1000;
-}
+function isNew(dateStr) { return Date.now() - new Date(dateStr).getTime() < 24 * 60 * 60 * 1000; }
 
 function renderContinue() {
   const list = getContinue();
   const section = document.getElementById('continue-section');
-  const scroll = document.getElementById('continue-scroll');
   if (!list.length) { section.style.display = 'none'; return; }
   section.style.display = 'block';
-  scroll.innerHTML = list.map(v => `
-    <div class="continue-card" onclick="openPlayer('${v.id}', ${JSON.stringify(v.title)}, '${v.channelName}')">
-      <img class="continue-thumb" src="${v.thumbnail}" alt="">
-      <div class="continue-progress"><div class="continue-progress-bar" style="width:40%"></div></div>
+  document.getElementById('continue-scroll').innerHTML = list.map(v => `
+    <div class="continue-card" onclick="openPlayer('${v.id}',${JSON.stringify(v.title)},'${v.channelName}')">
+      <div class="continue-thumb-wrap">
+        <img class="continue-thumb" src="${v.thumbnail}" alt="">
+      </div>
+      <div class="continue-progress"><div class="continue-progress-bar" style="width:35%"></div></div>
+      <div class="continue-ch">${v.channelName}</div>
       <div class="continue-title">${v.title}</div>
     </div>`).join('');
 }
@@ -621,40 +697,39 @@ function renderFeed() {
   if (!filtered.length) { feed.innerHTML = '<div class="empty">No videos found.</div>'; return; }
   feed.innerHTML = filtered.map(v => {
     const isWatched = !!watched[v.id];
-    return `<div class="video-card${isWatched ? ' watched' : ''}">
-      <div class="thumb-wrap" onclick="openPlayer('${v.id}', ${JSON.stringify(v.title)}, '${v.channelName}')">
+    const newVid = isNew(v.publishedAt);
+    return `<div class="video-card${isWatched ? ' watched' : ''}" onclick="openPlayer('${v.id}',${JSON.stringify(v.title)},'${v.channelName}')">
+      <div class="thumb-wrap">
         <img src="${v.thumbnail}" alt="" loading="lazy">
-        <div class="play-overlay">
-          <svg viewBox="0 0 80 80" fill="none">
-            <circle cx="40" cy="40" r="38" fill="rgba(0,0,0,0.6)" stroke="white" stroke-width="2"/>
-            <polygon points="32,24 60,40 32,56" fill="white"/>
-          </svg>
-        </div>
-        ${isNew(v.publishedAt) ? '<div class="new-badge">New</div>' : ''}
-        ${isWatched ? '<div class="watched-badge">Watched</div>' : ''}
+        ${newVid && !isWatched ? '<div class="new-badge">NEW</div>' : ''}
+        ${isWatched ? '<div class="watched-badge">WATCHED</div>' : ''}
       </div>
       <div class="card-info">
         <div class="card-channel">${v.channelName}</div>
         <div class="card-title">${v.title}</div>
         <div class="card-meta">${timeAgo(v.publishedAt)}</div>
       </div>
+      <button class="card-menu" onclick="event.stopPropagation()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="5" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="12" cy="19" r="1"/></svg>
+      </button>
     </div>`;
   }).join('');
 }
 
 function openPlayer(videoId, title, channelName) {
-  const video = allVideos.find(v => v.id === videoId);
+  currentVideoId = videoId;
   document.getElementById('player-title').textContent = title;
   document.getElementById('player-channel').textContent = channelName;
   document.getElementById('player-iframe').src = `https://www.youtube.com/embed/${videoId}?autoplay=1`;
+  document.getElementById('player-watch-on').onclick = () => window.open(`https://www.youtube.com/watch?v=${videoId}`, '_blank');
   document.getElementById('player-modal').classList.add('open');
   document.body.style.overflow = 'hidden';
   markWatched(videoId);
+  const video = allVideos.find(v => v.id === videoId);
   if (video) addToContinue(video);
   renderFeed();
   renderContinue();
 }
-
 function closePlayer() {
   document.getElementById('player-modal').classList.remove('open');
   document.getElementById('player-iframe').src = '';
@@ -669,7 +744,6 @@ function selectCategory(cat, el) {
   buildChannelPills(cat, 'All');
   renderFeed();
 }
-
 function selectChannel(ch, el) {
   activeChannel = ch;
   document.querySelectorAll('.ch-pill').forEach(p => p.classList.remove('active'));
@@ -678,13 +752,14 @@ function selectChannel(ch, el) {
 }
 
 function showSkeletons() {
-  document.getElementById('feed').innerHTML = Array(6).fill(`
-    <div class="skeleton">
+  document.getElementById('feed').innerHTML = Array(8).fill(`
+    <div class="skeleton-card">
       <div class="skeleton-thumb"></div>
       <div class="skeleton-info">
-        <div class="skeleton-line short"></div>
-        <div class="skeleton-line medium"></div>
-        <div class="skeleton-line long"></div>
+        <div class="skeleton-line xs"></div>
+        <div class="skeleton-line m"></div>
+        <div class="skeleton-line l"></div>
+        <div class="skeleton-line s"></div>
       </div>
     </div>`).join('');
 }
