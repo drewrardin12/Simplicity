@@ -30,26 +30,23 @@
     overflow-x: hidden;
   }
 
-  /* Scroll fade — cards fade in/out at top and bottom edges */
+  /* Scroll fade — mask on the feed container itself */
   .feed-container {
     position: relative;
-  }
-  .feed-container::before,
-  .feed-container::after {
-    content: '';
-    position: fixed;
-    left: 0; right: 0;
-    height: 80px;
-    pointer-events: none;
-    z-index: 99;
-  }
-  .feed-container::before {
-    top: 0;
-    background: linear-gradient(to bottom, var(--bg) 0%, transparent 100%);
-  }
-  .feed-container::after {
-    bottom: calc(var(--nav-h) + env(safe-area-inset-bottom));
-    background: linear-gradient(to top, var(--bg) 0%, transparent 100%);
+    -webkit-mask-image: linear-gradient(
+      to bottom,
+      transparent 0px,
+      black 60px,
+      black calc(100% - 60px),
+      transparent 100%
+    );
+    mask-image: linear-gradient(
+      to bottom,
+      transparent 0px,
+      black 60px,
+      black calc(100% - 60px),
+      transparent 100%
+    );
   }
 
   /* HEADER */
@@ -492,8 +489,8 @@
       <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="9" y="2" width="6" height="10" rx="3"/><path d="M5 10a7 7 0 0 0 14 0"/><line x1="12" y1="17" x2="12" y2="21"/><line x1="8" y1="21" x2="16" y2="21"/></svg>
       Sports
     </button>
-    <button class="nav-item" onclick="selectCategory('Other', this)">
-      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg>
+    <button class="nav-item" onclick="selectCategory('Shorts & Other', this)">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="6" y="3" width="12" height="18" rx="2"/><path d="M10 8l5 4-5 4V8z" fill="currentColor" stroke="none"/></svg>
       Other
     </button>
   </div>
@@ -537,10 +534,10 @@ const CHANNELS = [
   { name: 'Le Batard Show',      id: 'UCAIZ314ffmfM4PynCR8vElw', category: 'Sports Talk' },
   { name: 'Locked On White Sox', id: 'UCcvbtp567XlaGyMs8w_DTFA', category: 'Sports Talk' },
   { name: 'Andrew Fenichel',     id: 'UCenGh_r6mAm8uvnso5JWVjA', category: 'Sports Talk' },
-  { name: 'History at Night',    id: 'UCKDRru3yD00CpqKZRs69vWg', category: 'Other' },
+  { name: 'History at Night',    id: 'UCKDRru3yD00CpqKZRs69vWg', category: 'Shorts & Other' },
 ];
 
-const CATEGORIES = ['Golf', 'Packers', 'Sports Talk', 'Other'];
+const CATEGORIES = ['Golf', 'Packers', 'Sports Talk', 'Shorts & Other'];
 const PROXIES = [
   { url: 'https://api.allorigins.win/get?url=', json: true },
   { url: 'https://corsproxy.io/?', json: false },
