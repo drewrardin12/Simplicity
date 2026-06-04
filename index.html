@@ -499,24 +499,34 @@ function buildChannelPills(cat, selected) {
 async function fetchRSS(channelId) {
   const ytUrl = `https://www.youtube.com/feeds/videos.xml?channel_id=${channelId}`;
   const enc = encodeURIComponent(ytUrl);
+  // Use timestamp to create unique cache keys per request
+  const ts = Date.now();
+  const encTs = encodeURIComponent(`${ytUrl}&_=${ts}`);
 
-  // RSSHub public instance serves YouTube feeds with CORS headers — always fresh
   const proxies = [
-    `https://rsshub.app/youtube/channel/${channelId}`,
-    `https://proxy.corsfix.com/?${ytUrl}`,
-    `https://corsproxy.io/?url=${enc}`,
+    // Try with cache-busting timestamp first
+    `https://api.allorigins.win/raw?url=${encTs}`,
+    `https://corsproxy.io/?url=${encTs}`,
+    `https://proxy.corsfix.com/?${ytUrl}&_=${ts}`,
+    // Then without
     `https://api.allorigins.win/raw?url=${enc}`,
+    `https://corsproxy.io/?url=${enc}`,
+    `https://api.codetabs.com/v1/proxy?quest=${enc}`,
   ];
 
   for (const url of proxies) {
     try {
       const controller = new AbortController();
       const t = setTimeout(() => controller.abort(), 12000);
-      const res = await fetch(url, { signal: controller.signal });
+      const res = await fetch(url, {
+        signal: controller.signal,
+        cache: 'no-store',
+        headers: { 'Cache-Control': 'no-cache' }
+      });
       clearTimeout(t);
       if (!res.ok) continue;
       const text = await res.text();
-      if (text && text.length > 200 && (text.includes('<entry>') || text.includes('<item>'))) return text;
+      if (text && text.length > 200 && text.includes('<entry>')) return text;
     } catch { continue; }
   }
   return null;
