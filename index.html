@@ -3,19 +3,20 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Simplictyr</title>
+<title>Simplicity</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&display=swap');
 
   :root {
     --bg: #0a0a0a;
     --surface: #141414;
+    --surface2: #1a1a1a;
     --border: #222;
     --text: #f0f0f0;
     --muted: #555;
     --accent: #e8c840;
     --new: #4caf7d;
-    --nav-h: 64px;
+    --nav-h: 100px;
   }
 
   * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -26,6 +27,7 @@
     font-family: 'DM Sans', sans-serif;
     min-height: 100vh;
     padding-bottom: var(--nav-h);
+    overflow-x: hidden;
   }
 
   /* HEADER */
@@ -49,11 +51,34 @@
     letter-spacing: 3px;
     color: var(--accent);
   }
+  .header-right {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
   #video-count {
     font-size: 11px;
     color: var(--muted);
     letter-spacing: 1px;
     text-transform: uppercase;
+  }
+  .hamburger {
+    background: none;
+    border: none;
+    color: var(--text);
+    cursor: pointer;
+    padding: 4px;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+  }
+  .hamburger span {
+    display: block;
+    width: 22px;
+    height: 2px;
+    background: var(--text);
+    border-radius: 2px;
+    transition: all 0.3s;
   }
   .search-wrap { position: relative; }
   #search {
@@ -78,35 +103,90 @@
     color: var(--muted);
   }
 
-  /* CHANNEL FILTER ROW (appears when category selected) */
-  .channel-row {
+  /* DRAWER */
+  .drawer-overlay {
     display: none;
-    gap: 8px;
-    padding: 8px 16px;
-    overflow-x: auto;
-    border-bottom: 1px solid var(--border);
-    background: #0f0f0f;
-    scrollbar-width: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.6);
+    z-index: 300;
+    backdrop-filter: blur(2px);
   }
-  .channel-row.visible { display: flex; }
-  .channel-row::-webkit-scrollbar { display: none; }
-  .ch-pill {
-    flex-shrink: 0;
-    padding: 4px 12px;
-    border-radius: 999px;
-    border: 1px solid var(--border);
-    font-size: 11px;
-    font-weight: 500;
+  .drawer-overlay.open { display: block; }
+  .drawer {
+    position: fixed;
+    top: 0;
+    right: -100%;
+    width: 80%;
+    max-width: 320px;
+    height: 100%;
+    background: var(--surface);
+    z-index: 400;
+    transition: right 0.3s ease;
+    display: flex;
+    flex-direction: column;
+    border-left: 1px solid var(--border);
+  }
+  .drawer.open { right: 0; }
+  .drawer-header {
+    padding: 20px 20px 16px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .drawer-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 18px;
+    letter-spacing: 2px;
+    color: var(--accent);
+  }
+  .drawer-close {
+    background: none;
+    border: none;
     color: var(--muted);
     cursor: pointer;
-    transition: all 0.2s;
-    white-space: nowrap;
-    background: transparent;
+    padding: 4px;
   }
-  .ch-pill.active, .ch-pill:hover {
-    background: var(--accent);
-    color: #000;
-    border-color: var(--accent);
+  .drawer-body { overflow-y: auto; flex: 1; padding: 8px 0; }
+
+  .drawer-category {
+    padding: 10px 20px 4px;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: var(--muted);
+  }
+  .drawer-channel {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 20px;
+    cursor: pointer;
+    transition: background 0.15s;
+    border: none;
+    background: none;
+    width: 100%;
+    text-align: left;
+  }
+  .drawer-channel:hover, .drawer-channel.active {
+    background: rgba(232, 200, 64, 0.08);
+  }
+  .drawer-channel.active .drawer-ch-name { color: var(--accent); }
+  .drawer-ch-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--border);
+    flex-shrink: 0;
+    transition: background 0.15s;
+  }
+  .drawer-channel.active .drawer-ch-dot { background: var(--accent); }
+  .drawer-ch-name {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text);
+    transition: color 0.15s;
   }
 
   /* BOTTOM NAV */
@@ -115,12 +195,14 @@
     bottom: 0;
     left: 0;
     right: 0;
-    height: var(--nav-h);
     background: #0f0f0f;
     border-top: 1px solid var(--border);
+    z-index: 200;
+  }
+  .nav-tabs {
     display: flex;
     align-items: stretch;
-    z-index: 200;
+    height: 58px;
   }
   .nav-item {
     flex: 1;
@@ -140,9 +222,36 @@
     background: none;
     padding: 8px 0;
   }
-  .nav-item svg { transition: color 0.2s; }
   .nav-item.active { color: var(--accent); }
-  .nav-item.active svg { color: var(--accent); }
+
+  .channel-pills-row {
+    display: none;
+    gap: 8px;
+    padding: 6px 16px;
+    overflow-x: auto;
+    scrollbar-width: none;
+    border-top: 1px solid var(--border);
+  }
+  .channel-pills-row.visible { display: flex; }
+  .channel-pills-row::-webkit-scrollbar { display: none; }
+  .ch-pill {
+    flex-shrink: 0;
+    padding: 4px 12px;
+    border-radius: 999px;
+    border: 1px solid var(--border);
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--muted);
+    cursor: pointer;
+    transition: all 0.2s;
+    white-space: nowrap;
+    background: transparent;
+  }
+  .ch-pill.active, .ch-pill:hover {
+    background: var(--accent);
+    color: #000;
+    border-color: var(--accent);
+  }
 
   /* PTR */
   .ptr-indicator {
@@ -178,38 +287,18 @@
     padding-bottom: 4px;
   }
   .continue-scroll::-webkit-scrollbar { display: none; }
-  .continue-card {
-    flex-shrink: 0;
-    width: 140px;
-    cursor: pointer;
-  }
+  .continue-card { flex-shrink: 0; width: 140px; cursor: pointer; }
   .continue-thumb {
-    width: 140px;
-    height: 79px;
+    width: 140px; height: 79px;
     object-fit: cover;
     border-radius: 6px;
     border: 1px solid var(--border);
   }
-  .continue-progress {
-    height: 3px;
-    background: var(--border);
-    border-radius: 2px;
-    margin-top: 4px;
-  }
-  .continue-progress-bar {
-    height: 100%;
-    background: var(--accent);
-    border-radius: 2px;
-  }
+  .continue-progress { height: 3px; background: var(--border); border-radius: 2px; margin-top: 4px; }
+  .continue-progress-bar { height: 100%; background: var(--accent); border-radius: 2px; }
   .continue-title {
-    font-size: 11px;
-    color: var(--text);
-    margin-top: 4px;
-    line-height: 1.3;
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
+    font-size: 11px; color: var(--text); margin-top: 4px; line-height: 1.3;
+    display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
   }
 
   /* FEED */
@@ -221,7 +310,6 @@
     max-width: 700px;
     margin: 0 auto;
   }
-
   .video-card {
     background: var(--surface);
     border-radius: 10px;
@@ -231,165 +319,84 @@
   }
   .video-card.watched { opacity: 0.55; }
   .video-card:hover { transform: translateY(-2px); }
-
   .thumb-wrap {
-    position: relative;
-    width: 100%;
-    padding-top: 56.25%;
-    cursor: pointer;
-    background: #111;
+    position: relative; width: 100%; padding-top: 56.25%;
+    cursor: pointer; background: #111;
   }
-  .thumb-wrap img {
-    position: absolute;
-    inset: 0;
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-  }
+  .thumb-wrap img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
   .play-overlay {
-    position: absolute;
-    inset: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: rgba(0,0,0,0.3);
-    opacity: 0;
-    transition: opacity 0.2s;
+    position: absolute; inset: 0;
+    display: flex; align-items: center; justify-content: center;
+    background: rgba(0,0,0,0.3); opacity: 0; transition: opacity 0.2s;
   }
-  .thumb-wrap:hover .play-overlay,
-  .thumb-wrap:active .play-overlay { opacity: 1; }
+  .thumb-wrap:hover .play-overlay, .thumb-wrap:active .play-overlay { opacity: 1; }
   .play-overlay svg { width: 52px; height: 52px; }
-
-  .duration-badge {
-    position: absolute;
-    bottom: 8px;
-    right: 8px;
-    background: rgba(0,0,0,0.85);
-    color: #fff;
-    font-size: 11px;
-    font-weight: 600;
-    padding: 2px 6px;
-    border-radius: 4px;
-  }
   .new-badge {
-    position: absolute;
-    top: 8px;
-    left: 8px;
-    background: var(--new);
-    color: #fff;
-    font-size: 10px;
-    font-weight: 700;
-    padding: 2px 7px;
-    border-radius: 4px;
-    letter-spacing: 1px;
-    text-transform: uppercase;
+    position: absolute; top: 8px; left: 8px;
+    background: var(--new); color: #fff;
+    font-size: 10px; font-weight: 700; padding: 2px 7px;
+    border-radius: 4px; letter-spacing: 1px; text-transform: uppercase;
   }
   .watched-badge {
-    position: absolute;
-    top: 8px;
-    right: 8px;
-    background: rgba(0,0,0,0.7);
-    color: var(--muted);
-    font-size: 10px;
-    padding: 2px 7px;
-    border-radius: 4px;
+    position: absolute; top: 8px; right: 8px;
+    background: rgba(0,0,0,0.7); color: var(--muted);
+    font-size: 10px; padding: 2px 7px; border-radius: 4px;
   }
-
   .card-info { padding: 10px 14px 12px; }
   .card-channel {
-    font-size: 11px;
-    color: var(--accent);
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    margin-bottom: 4px;
+    font-size: 11px; color: var(--accent); font-weight: 600;
+    text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px;
   }
-  .card-title {
-    font-size: 14px;
-    font-weight: 500;
-    line-height: 1.4;
-    color: var(--text);
-    margin-bottom: 5px;
-  }
+  .card-title { font-size: 14px; font-weight: 500; line-height: 1.4; color: var(--text); margin-bottom: 5px; }
   .card-meta { font-size: 11px; color: var(--muted); }
 
   /* SKELETONS */
-  .skeleton {
-    background: var(--surface);
-    border-radius: 10px;
-    overflow: hidden;
-    border: 1px solid var(--border);
-  }
+  .skeleton { background: var(--surface); border-radius: 10px; overflow: hidden; border: 1px solid var(--border); }
   .skeleton-thumb {
-    width: 100%;
-    padding-top: 56.25%;
+    width: 100%; padding-top: 56.25%;
     background: linear-gradient(90deg, #1a1a1a 25%, #222 50%, #1a1a1a 75%);
-    background-size: 200% 100%;
-    animation: shimmer 1.4s infinite;
+    background-size: 200% 100%; animation: shimmer 1.4s infinite;
   }
   .skeleton-info { padding: 10px 14px 12px; }
   .skeleton-line {
-    height: 12px;
-    border-radius: 6px;
+    height: 12px; border-radius: 6px;
     background: linear-gradient(90deg, #1a1a1a 25%, #222 50%, #1a1a1a 75%);
-    background-size: 200% 100%;
-    animation: shimmer 1.4s infinite;
-    margin-bottom: 8px;
+    background-size: 200% 100%; animation: shimmer 1.4s infinite; margin-bottom: 8px;
   }
   .skeleton-line.short { width: 35%; }
   .skeleton-line.medium { width: 65%; }
   .skeleton-line.long { width: 88%; }
   @keyframes shimmer { to { background-position: -200% 0; } }
-
   .empty { text-align: center; padding: 60px 20px; color: var(--muted); font-size: 14px; }
 
   /* PLAYER MODAL */
   .player-modal {
-    display: none;
-    position: fixed;
-    inset: 0;
-    background: #000;
-    z-index: 1000;
-    flex-direction: column;
+    display: none; position: fixed; inset: 0;
+    background: #000; z-index: 1000; flex-direction: column;
   }
   .player-modal.open { display: flex; }
   .player-modal-header {
     padding: 16px 20px;
-    display: flex;
-    align-items: flex-start;
-    gap: 12px;
+    display: flex; align-items: flex-start; gap: 12px;
   }
-  .player-close {
-    background: none;
-    border: none;
-    color: var(--text);
-    cursor: pointer;
-    padding: 4px;
-    flex-shrink: 0;
-    margin-top: 2px;
-  }
+  .player-close { background: none; border: none; color: var(--text); cursor: pointer; padding: 4px; flex-shrink: 0; margin-top: 2px; }
   .player-title { font-size: 14px; font-weight: 500; line-height: 1.4; color: var(--text); }
   .player-channel { font-size: 11px; color: var(--accent); text-transform: uppercase; letter-spacing: 0.5px; margin-top: 2px; }
-  .player-frame-wrap {
-    position: relative;
-    width: 100%;
-    padding-top: 56.25%;
-  }
-  .player-frame-wrap iframe {
-    position: absolute;
-    inset: 0;
-    width: 100%;
-    height: 100%;
-    border: none;
-  }
+  .player-frame-wrap { position: relative; width: 100%; padding-top: 56.25%; }
+  .player-frame-wrap iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: none; }
 </style>
 </head>
 <body>
 
 <header>
   <div class="header-top">
-    <h1>SIMPLICTYR</h1>
-    <span id="video-count"></span>
+    <h1>SIMPLICITY</h1>
+    <div class="header-right">
+      <span id="video-count"></span>
+      <button class="hamburger" onclick="openDrawer()">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
   </div>
   <div class="search-wrap">
     <svg class="search-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
@@ -397,7 +404,17 @@
   </div>
 </header>
 
-<div class="channel-row" id="channel-row"></div>
+<!-- Drawer -->
+<div class="drawer-overlay" id="drawer-overlay" onclick="closeDrawer()"></div>
+<div class="drawer" id="drawer">
+  <div class="drawer-header">
+    <span class="drawer-title">CHANNELS</span>
+    <button class="drawer-close" onclick="closeDrawer()">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg>
+    </button>
+  </div>
+  <div class="drawer-body" id="drawer-body"></div>
+</div>
 
 <div class="ptr-indicator" id="ptr">Refreshing...</div>
 
@@ -410,26 +427,29 @@
 
 <!-- Bottom Nav -->
 <nav class="bottom-nav">
-  <button class="nav-item active" id="nav-all" onclick="selectCategory('All', this)">
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
-    All
-  </button>
-  <button class="nav-item" id="nav-golf" onclick="selectCategory('Golf', this)">
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="7" r="3"/><path d="M12 10v11M9 21h6"/><path d="M17 4l2-1"/></svg>
-    Golf
-  </button>
-  <button class="nav-item" id="nav-packers" onclick="selectCategory('Packers', this)">
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><ellipse cx="12" cy="12" rx="9" ry="6" transform="rotate(-30 12 12)"/><path d="M6.5 8.5l11 7M8 6.5l8 11"/></svg>
-    Packers
-  </button>
-  <button class="nav-item" id="nav-sports" onclick="selectCategory('Sports Talk', this)">
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-    Sports Talk
-  </button>
-  <button class="nav-item" id="nav-other" onclick="selectCategory('Other', this)">
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
-    Other
-  </button>
+  <div class="channel-pills-row" id="channel-pills-row"></div>
+  <div class="nav-tabs">
+    <button class="nav-item active" onclick="selectCategory('All', this)">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+      All
+    </button>
+    <button class="nav-item" onclick="selectCategory('Golf', this)">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="7" r="3"/><path d="M12 10v11M9 21h6"/><path d="M17 4l2-1"/></svg>
+      Golf
+    </button>
+    <button class="nav-item" onclick="selectCategory('Packers', this)">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><ellipse cx="12" cy="12" rx="9" ry="6" transform="rotate(-30 12 12)"/><path d="M6.5 8.5l11 7M8 6.5l8 11"/></svg>
+      Packers
+    </button>
+    <button class="nav-item" onclick="selectCategory('Sports Talk', this)">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+      Sports
+    </button>
+    <button class="nav-item" onclick="selectCategory('Other', this)">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+      Other
+    </button>
+  </div>
 </nav>
 
 <!-- Player Modal -->
@@ -450,14 +470,12 @@
 
 <script>
 const CHANNELS = [
-  // Golf
   { name: 'Bob Does Sports',     id: 'UCqr4sONkmFEOPc3rfoVLEvg', category: 'Golf' },
   { name: 'Bob Does Sports Pod', id: 'UCNgebo9LnovieD353k-YRag',  category: 'Golf' },
   { name: 'Grant Horvat',        id: 'UCgUueMmSpcl-aCTt5CuCKQw', category: 'Golf' },
   { name: 'Grant Horvat 2',      id: 'UCjw5RoGW4zG-zNpc5v8oFxA', category: 'Golf' },
   { name: 'Golf Digest',         id: 'UClBd3yC3TBTICIZqujCk1Hw', category: 'Golf' },
   { name: 'Shane Oh Golf',       id: 'UCXSpdCC9PKlul28Yiq4OdnA', category: 'Golf' },
-  // Packers
   { name: 'Locked On Packers',   id: 'UCufUP6i_pdfTjqVEswITOmw', category: 'Packers' },
   { name: 'Pack-A-Day Podcast',  id: 'UCSGx5Pq0zA_7O726M3JEptA', category: 'Packers' },
   { name: 'Cheesehead TV',       id: 'UCMzR22wVc2Ru8Hz0fsVzkIQ', category: 'Packers' },
@@ -465,33 +483,81 @@ const CHANNELS = [
   { name: 'Basaraski',           id: 'UCd9L1l2Odu2cND3ILHiuJQQ', category: 'Packers' },
   { name: 'Go Pack Show',        id: 'UCi7MwcGY2NkYNTDP60nlmTA', category: 'Packers' },
   { name: 'Green Bay Packers',   id: 'UCJtI-l6La0zniodFtSHYrBg', category: 'Packers' },
-  // Sports Talk
   { name: 'Le Batard Show',      id: 'UCAIZ314ffmfM4PynCR8vElw', category: 'Sports Talk' },
   { name: 'Locked On White Sox', id: 'UCcvbtp567XlaGyMs8w_DTFA', category: 'Sports Talk' },
   { name: 'Andrew Fenichel',     id: 'UCenGh_r6mAm8uvnso5JWVjA', category: 'Sports Talk' },
-  // Other
   { name: 'History at Night',    id: 'UCKDRru3yD00CpqKZRs69vWg', category: 'Other' },
 ];
 
+const CATEGORIES = ['Golf', 'Packers', 'Sports Talk', 'Other'];
 const PROXY = 'https://api.allorigins.win/get?url=';
 let allVideos = [];
 let activeCategory = 'All';
 let activeChannel = 'All';
 
-function getWatched() {
-  try { return JSON.parse(localStorage.getItem('sw_watched') || '{}'); } catch { return {}; }
-}
-function markWatched(id) {
-  const w = getWatched(); w[id] = Date.now();
-  try { localStorage.setItem('sw_watched', JSON.stringify(w)); } catch {}
-}
-function getContinue() {
-  try { return JSON.parse(localStorage.getItem('sw_continue') || '[]'); } catch { return []; }
-}
+function getWatched() { try { return JSON.parse(localStorage.getItem('sw_watched') || '{}'); } catch { return {}; } }
+function markWatched(id) { const w = getWatched(); w[id] = Date.now(); try { localStorage.setItem('sw_watched', JSON.stringify(w)); } catch {} }
+function getContinue() { try { return JSON.parse(localStorage.getItem('sw_continue') || '[]'); } catch { return []; } }
 function addToContinue(video) {
   let list = getContinue().filter(v => v.id !== video.id);
   list.unshift(video);
-  try { localStorage.setItem('sw_continue', JSON.stringify(list.slice(0, 8))); } catch {}
+  try { localStorage.setItem('sw_continue', JSON.stringify(list.slice(0, 15))); } catch {}
+}
+
+function openDrawer() {
+  buildDrawer();
+  document.getElementById('drawer').classList.add('open');
+  document.getElementById('drawer-overlay').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+function closeDrawer() {
+  document.getElementById('drawer').classList.remove('open');
+  document.getElementById('drawer-overlay').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+function buildDrawer() {
+  const body = document.getElementById('drawer-body');
+  let html = '';
+  CATEGORIES.forEach(cat => {
+    const channels = CHANNELS.filter(c => c.category === cat);
+    html += `<div class="drawer-category">${cat}</div>`;
+    channels.forEach(ch => {
+      const isActive = activeChannel === ch.name;
+      html += `<button class="drawer-channel${isActive ? ' active' : ''}" onclick="jumpToChannel('${ch.name}')">
+        <div class="drawer-ch-dot"></div>
+        <span class="drawer-ch-name">${ch.name}</span>
+      </button>`;
+    });
+  });
+  body.innerHTML = html;
+}
+
+function jumpToChannel(channelName) {
+  // Set category to match the channel
+  const ch = CHANNELS.find(c => c.name === channelName);
+  if (ch) {
+    activeCategory = ch.category;
+    activeChannel = channelName;
+    // Update nav tabs
+    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+    const catIndex = ['All', 'Golf', 'Packers', 'Sports Talk', 'Other'].indexOf(ch.category);
+    document.querySelectorAll('.nav-item')[catIndex]?.classList.add('active');
+    // Update channel pills
+    buildChannelPills(ch.category, channelName);
+  }
+  closeDrawer();
+  renderFeed();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function buildChannelPills(cat, selectedChannel) {
+  const row = document.getElementById('channel-pills-row');
+  if (!cat || cat === 'All') { row.classList.remove('visible'); return; }
+  const channels = [...new Set(allVideos.filter(v => v.category === cat).map(v => v.channelName))];
+  row.innerHTML = `<button class="ch-pill${selectedChannel === 'All' ? ' active' : ''}" onclick="selectChannel('All', this)">All</button>` +
+    channels.map(ch => `<button class="ch-pill${selectedChannel === ch ? ' active' : ''}" onclick="selectChannel('${ch}', this)">${ch}</button>`).join('');
+  row.classList.add('visible');
 }
 
 async function fetchChannelVideos(channel) {
@@ -500,7 +566,7 @@ async function fetchChannelVideos(channel) {
     const res = await fetch(`${PROXY}${rssUrl}`);
     const json = await res.json();
     const xml = new DOMParser().parseFromString(json.contents, 'text/xml');
-    return Array.from(xml.querySelectorAll('entry')).slice(0, 8).map(entry => {
+    return Array.from(xml.querySelectorAll('entry')).slice(0, 15).map(entry => {
       const videoId = entry.querySelector('videoId')?.textContent || entry.querySelector('id')?.textContent?.split(':').pop();
       return {
         id: videoId,
@@ -540,8 +606,7 @@ function renderContinue() {
       <img class="continue-thumb" src="${v.thumbnail}" alt="">
       <div class="continue-progress"><div class="continue-progress-bar" style="width:40%"></div></div>
       <div class="continue-title">${v.title}</div>
-    </div>
-  `).join('');
+    </div>`).join('');
 }
 
 function renderFeed() {
@@ -556,8 +621,7 @@ function renderFeed() {
   if (!filtered.length) { feed.innerHTML = '<div class="empty">No videos found.</div>'; return; }
   feed.innerHTML = filtered.map(v => {
     const isWatched = !!watched[v.id];
-    return `
-    <div class="video-card${isWatched ? ' watched' : ''}">
+    return `<div class="video-card${isWatched ? ' watched' : ''}">
       <div class="thumb-wrap" onclick="openPlayer('${v.id}', ${JSON.stringify(v.title)}, '${v.channelName}')">
         <img src="${v.thumbnail}" alt="" loading="lazy">
         <div class="play-overlay">
@@ -574,7 +638,7 @@ function renderFeed() {
         <div class="card-title">${v.title}</div>
         <div class="card-meta">${timeAgo(v.publishedAt)}</div>
       </div>
-    </div>`
+    </div>`;
   }).join('');
 }
 
@@ -602,15 +666,7 @@ function selectCategory(cat, el) {
   activeChannel = 'All';
   document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
   el.classList.add('active');
-  const row = document.getElementById('channel-row');
-  if (cat === 'All') {
-    row.classList.remove('visible');
-  } else {
-    const channels = [...new Set(allVideos.filter(v => v.category === cat).map(v => v.channelName))];
-    row.innerHTML = `<button class="ch-pill active" onclick="selectChannel('All', this)">All</button>` +
-      channels.map(ch => `<button class="ch-pill" onclick="selectChannel('${ch}', this)">${ch}</button>`).join('');
-    row.classList.add('visible');
-  }
+  buildChannelPills(cat, 'All');
   renderFeed();
 }
 
@@ -641,7 +697,6 @@ async function loadVideos() {
   renderContinue();
 }
 
-// Pull to refresh
 let touchStartY = 0, isPulling = false;
 document.addEventListener('touchstart', e => { if (window.scrollY === 0) touchStartY = e.touches[0].clientY; }, { passive: true });
 document.addEventListener('touchmove', e => {
