@@ -519,14 +519,13 @@ async function fetchChannelVideos(channel) {
     const contents = await fetchWithProxy(`https://www.youtube.com/feeds/videos.xml?channel_id=${channel.id}`);
     if (!contents) return [];
     const xml = new DOMParser().parseFromString(contents, 'text/xml');
-    const cutoff = Date.now() - (14 * 24 * 60 * 60 * 1000); // 14 days
+    // No date filter — show everything the RSS returns, sorted by date
     return Array.from(xml.querySelectorAll('entry'))
       .map(entry => {
         const videoId = entry.querySelector('videoId')?.textContent || entry.querySelector('id')?.textContent?.split(':').pop();
         const seconds = entry.querySelector('content')?.getAttribute('duration') || entry.querySelector('duration')?.getAttribute('seconds') || null;
         const title = entry.querySelector('title')?.textContent || '';
         const publishedAt = entry.querySelector('published')?.textContent || '';
-        // Shorts: vertical thumbnail aspect, #shorts tag, or ≤ 60s
         const isShort = title.toLowerCase().includes('#short') || (seconds && parseInt(seconds) <= 60);
         return {
           id: videoId, title,
@@ -535,8 +534,7 @@ async function fetchChannelVideos(channel) {
           category: isShort ? 'Shorts & Other' : channel.category,
           publishedAt, seconds, isShort,
         };
-      })
-      .filter(v => new Date(v.publishedAt).getTime() >= cutoff);
+      });
   } catch { return []; }
 }
 
@@ -607,7 +605,7 @@ function renderFeed() {
   // Always sort newest first
   filtered.sort((a, b) => new Date(b.publishedAt) - new Date(a.publishedAt));
   document.getElementById('video-count').textContent = `${filtered.length} videos`;
-  if (!filtered.length) { feed.innerHTML = '<div class="empty">No videos in the last 14 days.</div>'; return; }
+  if (!filtered.length) { feed.innerHTML = '<div class="empty">No videos found.</div>'; return; }
   feed.innerHTML = '';
   filtered.forEach(v => feed.appendChild(buildCard(v, watched)));
 }
