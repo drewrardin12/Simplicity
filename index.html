@@ -122,7 +122,8 @@
     opacity: 0;
     transition: opacity 0.2s;
   }
-  .thumb-wrap:hover .play-overlay { opacity: 1; }
+  .thumb-wrap:hover .play-overlay,
+  .thumb-wrap:active .play-overlay { opacity: 1; }
   .play-overlay svg { width: 56px; height: 56px; }
 
   .embed-wrap {
@@ -197,54 +198,49 @@
 </div>
 
 <script>
-const API_KEY = 'AIzaSyCx3ZL1LKQX5GpfUUxSrb1dRdz';
-
+// Channel IDs for RSS feeds (no API key needed)
 const CHANNELS = [
-  // Golf
-  { name: 'Bob Does Sports',   handle: 'bobdoessports',     category: 'Golf' },
-  { name: 'Grant Horvat',      handle: 'granthorvatgolf',   category: 'Golf' },
-  // Packers
-  { name: 'Locked On Packers', handle: 'lockedonpackers',   category: 'Packers' },
-  { name: 'Pack-A-Day Podcast',handle: 'packadaypodcast',   category: 'Packers' },
-  { name: 'Cheesehead TV',     handle: 'cheeseheadtv',      category: 'Packers' },
-  { name: 'SidelineScoop',     handle: 'SidelineScoop',     category: 'Packers' },
-  { name: 'Basaraski',         handle: 'Basaraski',         category: 'Packers' },
-  { name: 'Go Pack Show',      handle: 'GoPackShow',        category: 'Packers' },
-  { name: 'Green Bay Packers', handle: 'packers',           category: 'Packers' },
-  // Sports Talk
-  { name: 'Le Batard Show',    handle: 'lebatardshow',      category: 'Sports Talk' },
+  { name: 'Bob Does Sports',    id: 'UCqr4sONkmFEOPc3rfoVLEvg', category: 'Golf' },
+  { name: 'Grant Horvat',       id: 'UCgUueMmSpcl-aCTt5CuCKQw', category: 'Golf' },
+  { name: 'Locked On Packers',  id: 'UCufUP6i_pdfTjqVEswITOmw', category: 'Packers' },
+  { name: 'Pack-A-Day Podcast', id: 'UCSGx5Pq0zA_7O726M3JEptA', category: 'Packers' },
+  { name: 'Cheesehead TV',      id: 'UCMzR22wVc2Ru8Hz0fsVzkIQ', category: 'Packers' },
+  { name: 'SidelineScoop',      id: 'UCq7fHWBCTwkMPbPiP-5FJsA', category: 'Packers' },
+  { name: 'Basaraski',          id: 'UCsGO7qCXFkNkDpFHGt3loDg', category: 'Packers' },
+  { name: 'Go Pack Show',       id: 'UCvBbDMDOFoSVBMVYDVJvnog', category: 'Packers' },
+  { name: 'Green Bay Packers',  id: 'UCuHgHbHBWQMXKA2GOEb9hGg', category: 'Packers' },
+  { name: 'Le Batard Show',     id: 'UC927fEg6cl35hzEPJ28-tYA', category: 'Sports Talk' },
 ];
 
 const CATEGORIES = ['All', 'Golf', 'Packers', 'Sports Talk'];
+const PROXY = 'https://api.allorigins.win/get?url=';
 
 let allVideos = [];
 let activeFilter = 'All';
 
-async function resolveHandle(handle) {
-  const res = await fetch(
-    `https://www.googleapis.com/youtube/v3/channels?part=contentDetails&forHandle=${handle}&key=${API_KEY}`
-  );
-  const data = await res.json();
-  if (!data.items?.length) return null;
-  return data.items[0].contentDetails.relatedPlaylists.uploads;
+function getRssUrl(channelId) {
+  return `https://www.youtube.com/feeds/videos.xml?channel_id=${channelId}`;
 }
 
-async function getVideos(channel) {
-  const uploadsId = await resolveHandle(channel.handle);
-  if (!uploadsId) return [];
-  const res = await fetch(
-    `https://www.googleapis.com/youtube/v3/playlistItems?part=snippet&maxResults=8&playlistId=${uploadsId}&key=${API_KEY}`
-  );
-  const data = await res.json();
-  if (!data.items) return [];
-  return data.items.map(item => ({
-    id: item.snippet.resourceId.videoId,
-    title: item.snippet.title,
-    thumbnail: item.snippet.thumbnails?.medium?.url || item.snippet.thumbnails?.default?.url,
-    channelName: channel.name,
-    category: channel.category,
-    publishedAt: item.snippet.publishedAt,
-  }));
+async function fetchChannelVideos(channel) {
+  try {
+    const rssUrl = encodeURIComponent(getRssUrl(channel.id));
+    const res = await fetch(`${PROXY}${rssUrl}`);
+    const json = await res.json();
+    const parser = new DOMParser();
+    const xml = parser.parseFromString(json.contents, 'text/xml');
+    const entries = Array.from(xml.querySelectorAll('entry')).slice(0, 8);
+    return entries.map(entry => {
+      const videoId = entry.querySelector('videoId')?.textContent || 
+                      entry.querySelector('id')?.textContent?.split(':').pop();
+      const published = entry.querySelector('published')?.textContent || '';
+      const title = entry.querySelector('title')?.textContent || '';
+      const thumbnail = `https://i.ytimg.com/vi/${videoId}/mqdefault.jpg`;
+      return { id: videoId, title, thumbnail, channelName: channel.name, category: channel.category, publishedAt: published };
+    });
+  } catch(e) {
+    return [];
+  }
 }
 
 function timeAgo(dateStr) {
@@ -255,7 +251,7 @@ function timeAgo(dateStr) {
   if (hrs < 24) return `${hrs}h ago`;
   const days = Math.floor(hrs / 24);
   if (days < 30) return `${days}d ago`;
-  return `${Math.floor(days/30)}mo ago`;
+  return `${Math.floor(days / 30)}mo ago`;
 }
 
 function renderFeed() {
@@ -316,7 +312,7 @@ function filterBy(cat, el) {
 
 async function init() {
   buildFilters();
-  const results = await Promise.allSettled(CHANNELS.map(getVideos));
+  const results = await Promise.allSettled(CHANNELS.map(fetchChannelVideos));
   allVideos = results
     .flatMap(r => r.status === 'fulfilled' ? r.value : [])
     .sort((a, b) => new Date(b.publishedAt) - new Date(a.publishedAt));
