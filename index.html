@@ -434,7 +434,7 @@ const CHANNELS = [
   { name: 'Grant Horvat',        id: 'UCgUueMmSpcl-aCTt5CuCKQw', category: 'Golf' },
   { name: 'Grant Horvat 2',      id: 'UCjw5RoGW4zG-zNpc5v8oFxA', category: 'Golf' },
   { name: 'Golf Digest',         id: 'UClBd3yC3TBTICIZqujCk1Hw', category: 'Golf' },
-  { name: 'Shane Oh Golf',       id: 'UCXSpdCC9PKlul28Yiq4OdnA', category: 'Golf' },
+  { name: 'Shane Oh Golf',       id: 'UCXSpdCC9PKlul28Yiq4OdnA', category: 'Shorts & Other' },
   { name: 'Locked On Packers',   id: 'UCufUP6i_pdfTjqVEswITOmw', category: 'Packers' },
   { name: 'Pack-A-Day Podcast',  id: 'UCSGx5Pq0zA_7O726M3JEptA', category: 'Packers' },
   { name: 'Cheesehead TV',       id: 'UCMzR22wVc2Ru8Hz0fsVzkIQ', category: 'Packers' },
@@ -444,7 +444,7 @@ const CHANNELS = [
   { name: 'Green Bay Packers',   id: 'UCJtI-l6La0zniodFtSHYrBg', category: 'Packers' },
   { name: 'Le Batard Show',      id: 'UCAIZ314ffmfM4PynCR8vElw', category: 'Sports Talk' },
   { name: 'Locked On White Sox', id: 'UCcvbtp567XlaGyMs8w_DTFA', category: 'Sports Talk' },
-  { name: 'Andrew Fenichel',     id: 'UCenGh_r6mAm8uvnso5JWVjA', category: 'Sports Talk' },
+  { name: 'Andrew Fenichel',     id: 'UCenGh_r6mAm8uvnso5JWVjA', category: 'Shorts & Other' },
   { name: 'History at Night',    id: 'UCKDRru3yD00CpqKZRs69vWg', category: 'Shorts & Other' },
 ];
 
@@ -469,49 +469,13 @@ function setShortsCache(id, isShort) {
   try { localStorage.setItem('sw_shorts', JSON.stringify(cache)); } catch {}
 }
 
-async function detectShort(videoId) {
+function detectShort(videoId, title) {
   const cache = getShortsCache();
   if (videoId in cache) return cache[videoId];
-
-  let isShort = false;
-
-  try {
-    const url = `https://www.youtube.com/watch?v=${videoId}`;
-    const html = await fetchRSSRaw(url);
-    if (html) {
-      isShort =
-        html.includes('/shorts/' + videoId) ||
-        html.includes('"isShort"') ||
-        html.includes('"reelWatchEndpoint"') ||
-        html.includes('"shortsLockupViewModel"') ||
-        html.includes('"SHORTS"');
-    }
-  } catch { isShort = false; }
-
+  // Title-based detection only — fast, no network calls
+  const isShort = /#shorts?/i.test(title);
   setShortsCache(videoId, isShort);
   return isShort;
-}
-
-// Separate raw fetch for watch page (no XML validation)
-async function fetchRSSRaw(url) {
-  const enc = encodeURIComponent(url);
-  const proxies = [
-    `https://api.allorigins.win/raw?url=${enc}`,
-    `https://corsproxy.io/?url=${enc}`,
-    `https://api.codetabs.com/v1/proxy?quest=${enc}`,
-  ];
-  for (const proxyUrl of proxies) {
-    try {
-      const controller = new AbortController();
-      const t = setTimeout(() => controller.abort(), 8000);
-      const res = await fetch(proxyUrl, { signal: controller.signal });
-      clearTimeout(t);
-      if (!res.ok) continue;
-      const text = await res.text();
-      if (text && text.length > 500) return text;
-    } catch { continue; }
-  }
-  return null;
 }
 function getWatched() { try { return JSON.parse(localStorage.getItem('sw_watched') || '{}'); } catch { return {}; } }
 function markWatched(id) { const w = getWatched(); w[id] = Date.now(); try { localStorage.setItem('sw_watched', JSON.stringify(w)); } catch {} }
@@ -790,19 +754,14 @@ function showSkeletons() {
     <div class="skeleton-card"><div class="skeleton-thumb"></div></div>`).join('');
 }
 
-async function detectShortsInBackground() {
+function detectShortsInBackground() {
   const toCheck = allVideos.filter(v => v.category !== 'Shorts & Other');
-  // Process in small batches to avoid hammering the proxy
-  const batchSize = 5;
-  for (let i = 0; i < toCheck.length; i += batchSize) {
-    const batch = toCheck.slice(i, i + batchSize);
-    await Promise.all(batch.map(async video => {
-      const isShort = await detectShort(video.id);
-      if (isShort) video.category = 'Shorts & Other';
-    }));
-    // Re-render after each batch so feed updates progressively
-    renderFeed();
-  }
+  let changed = false;
+  toCheck.forEach(video => {
+    const isShort = detectShort(video.id, video.title);
+    if (isShort) { video.category = 'Shorts & Other'; changed = true; }
+  });
+  if (changed) renderFeed();
 }
 
 async function loadVideos() {
@@ -832,12 +791,12 @@ async function loadVideos() {
     }).catch(() => {})
   );
   await Promise.allSettled(promises);
-  // Run shorts detection — wait for it to finish before hiding splash
-  await detectShortsInBackground();
-  // Hide splash
+  // Hide splash as soon as videos are loaded
   const splash = document.getElementById('splash');
   splash.classList.add('hidden');
   setTimeout(() => splash.style.display = 'none', 600);
+  // Run shorts detection silently in background — won't block the feed
+  detectShortsInBackground();
 }
 
 let touchStartY = 0, isPulling = false;
