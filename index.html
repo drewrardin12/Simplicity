@@ -64,13 +64,13 @@
   /* SCROLL FADES — sit above header/nav using pointer-events:none */
   .fade-top {
     position: fixed; top: 0; left: 0; right: 0;
-    height: 80px; pointer-events: none; z-index: 99;
-    background: linear-gradient(to bottom, rgba(4,4,6,0.6) 0%, transparent 100%);
+    height: 120px; pointer-events: none; z-index: 99;
+    background: linear-gradient(to bottom, rgba(4,4,6,0.85) 0%, rgba(4,4,6,0.3) 50%, transparent 100%);
   }
   .fade-bottom {
     position: fixed; bottom: 0; left: 0; right: 0;
-    height: 80px; pointer-events: none; z-index: 199;
-    background: linear-gradient(to top, rgba(4,4,6,0.6) 0%, transparent 100%);
+    height: 120px; pointer-events: none; z-index: 199;
+    background: linear-gradient(to top, rgba(4,4,6,0.85) 0%, rgba(4,4,6,0.3) 50%, transparent 100%);
   }
 
   /* BOTTOM NAV */
@@ -121,26 +121,46 @@
     position: relative; border-radius: 16px; overflow: hidden;
     cursor: pointer; background: var(--surface);
     transition: opacity 0.2s, transform 0.15s;
-    border: 1px solid rgba(255,255,255,0.06);
+    /* Slightly more visible border */
+    border: 1px solid rgba(255,255,255,0.11);
     box-shadow:
-      inset 0 1px 0 rgba(255,255,255,0.09),
-      inset 1px 0 0 rgba(255,255,255,0.04),
-      inset 0 -2px 8px rgba(0,0,0,0.45),
-      0 2px 8px rgba(0,0,0,0.5),
-      0 8px 32px rgba(0,0,0,0.4);
+      /* Stronger top bevel */
+      inset 0 1px 0 rgba(255,255,255,0.18),
+      /* Stronger left bevel */
+      inset 1px 0 0 rgba(255,255,255,0.09),
+      /* Darker bottom shadow */
+      inset 0 -2px 10px rgba(0,0,0,0.55),
+      /* More lift */
+      0 4px 12px rgba(0,0,0,0.6),
+      0 12px 40px rgba(0,0,0,0.5);
   }
+  /* Stronger diagonal glass sheen top-left */
   .video-card::before {
     content: ''; position: absolute; inset: 0; z-index: 1; pointer-events: none;
-    background: linear-gradient(145deg, rgba(255,255,255,0.045) 0%, transparent 40%);
+    background: linear-gradient(
+      140deg,
+      rgba(255,255,255,0.13) 0%,
+      rgba(255,255,255,0.04) 30%,
+      transparent 55%
+    );
   }
+  /* Stronger emerald light leak bottom-right */
   .video-card::after {
     content: ''; position: absolute; bottom: -20px; right: -20px;
-    width: 55%; height: 55%; z-index: 1; pointer-events: none;
-    background: radial-gradient(ellipse at bottom right, rgba(34,197,94,0.11) 0%, rgba(34,197,94,0.04) 40%, transparent 70%);
-    border-radius: 50%; filter: blur(12px);
+    width: 65%; height: 65%; z-index: 1; pointer-events: none;
+    background: radial-gradient(ellipse at bottom right,
+      rgba(34,197,94,0.19) 0%,
+      rgba(34,197,94,0.07) 45%,
+      transparent 70%
+    );
+    border-radius: 50%; filter: blur(14px);
   }
   .video-card.is-new::after {
-    background: radial-gradient(ellipse at bottom right, rgba(34,197,94,0.18) 0%, rgba(34,197,94,0.07) 40%, transparent 70%);
+    background: radial-gradient(ellipse at bottom right,
+      rgba(34,197,94,0.30) 0%,
+      rgba(34,197,94,0.12) 45%,
+      transparent 70%
+    );
   }
   .video-card.watched { opacity: 0.38; }
   .video-card:active { transform: scale(0.985); }
@@ -487,7 +507,8 @@ function buildChannelPills(cat, selected) {
     channels.map(ch => `<button class="ch-pill${selected === ch ? ' active' : ''}" data-ch="${ch}">${ch}</button>`).join('');
   row.classList.add('visible');
   row.querySelectorAll('.ch-pill').forEach(btn => {
-    btn.addEventListener('click', () => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
       activeChannel = btn.dataset.ch;
       row.querySelectorAll('.ch-pill').forEach(p => p.classList.remove('active'));
       btn.classList.add('active');
@@ -557,7 +578,9 @@ async function fetchChannelVideos(channel) {
         publishedAt = item.querySelector('published')?.textContent || '';
         seconds = item.querySelector('content')?.getAttribute('duration') || item.querySelector('duration')?.getAttribute('seconds') || null;
       }
-      const isShort = title.toLowerCase().includes('#short') || (seconds && parseInt(seconds) <= 60);
+      const isShort = title.toLowerCase().includes('#short') ||
+                      title.toLowerCase().includes('#shorts') ||
+                      (seconds && parseInt(seconds) <= 90);
       return {
         id: videoId, title,
         thumbnail: `https://i.ytimg.com/vi/${videoId}/mqdefault.jpg`,
