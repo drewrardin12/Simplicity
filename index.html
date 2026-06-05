@@ -1010,7 +1010,7 @@ const HARDCODED_VIDEOS = [
 ];
 
 async function loadVideos() {
-  allVideos = [...HARDCODED_VIDEOS];
+  allVideos = [];
   document.getElementById('video-count').textContent = 'Loading...';
   const promises = CHANNELS.map(channel =>
     fetchChannelVideos(channel).then(videos => {
