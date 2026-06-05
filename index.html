@@ -236,6 +236,23 @@
   @keyframes shimmer { to { background-position: -200% 0; } }
   .empty { text-align: center; padding: 60px 20px; color: var(--text3); font-size: 14px; }
 
+  /* TOAST */
+  .toast {
+    position: fixed; bottom: calc(var(--nav-h) + 16px + env(safe-area-inset-bottom));
+    left: 50%; transform: translateX(-50%) translateY(20px);
+    background: var(--surface2); color: var(--text);
+    font-family: 'Outfit', sans-serif; font-size: 12px; font-weight: 500;
+    padding: 8px 16px; border-radius: 999px;
+    border: 1px solid var(--border);
+    box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+    z-index: 999; opacity: 0;
+    transition: opacity 0.3s, transform 0.3s;
+    pointer-events: none; white-space: nowrap;
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+  .toast.success { border-color: var(--new); color: var(--new); }
+  .toast.warning { border-color: #f59e0b; color: #f59e0b; }
+
   /* SLEEP TIMER */
   .timer-btn {
     background: none; border: none; color: var(--text2);
@@ -484,6 +501,8 @@
 
 <div class="ptr-indicator" id="ptr">Refreshing...</div>
 <div class="feed" id="feed"></div>
+
+<div class="toast" id="toast"></div>
 
 <!-- Sleep Timer Modal -->
 <div class="timer-modal" id="timer-modal">
@@ -887,6 +906,19 @@ function goToAll() {
   renderFeed();
 }
 
+// TOAST
+function showToast(message, type = 'success', duration = 3000) {
+  const toast = document.getElementById('toast');
+  toast.textContent = message;
+  toast.className = `toast ${type}`;
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => toast.classList.add('show'));
+  });
+  setTimeout(() => {
+    toast.classList.remove('show');
+  }, duration);
+}
+
 // SLEEP TIMER
 let sleepTimerInterval = null;
 let sleepTimerEnd = null;
@@ -1042,6 +1074,14 @@ window.addEventListener('popstate', () => {
 
 // Clear old shorts cache so detection re-runs with correct method
 localStorage.removeItem('sw_shorts');
+// Safety timeout — hide splash after 15 seconds no matter what
+setTimeout(() => {
+  const splash = document.getElementById('splash');
+  if (splash && !splash.classList.contains('hidden')) {
+    splash.classList.add('hidden');
+    setTimeout(() => splash.style.display = 'none', 600);
+  }
+}, 15000);
 showSkeletons();
 loadVideos();
 </script>
