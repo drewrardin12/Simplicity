@@ -469,22 +469,49 @@ function setShortsCache(id, isShort) {
   try { localStorage.setItem('sw_shorts', JSON.stringify(cache)); } catch {}
 }
 
-function detectShortByThumbnail(videoId) {
-  return new Promise(resolve => {
-    const cache = getShortsCache();
-    if (videoId in cache) { resolve(cache[videoId]); return; }
-    const img = new Image();
-    img.onload = () => {
-      // Regular videos: mqdefault is 320x180 (landscape)
-      // Shorts: mqdefault is 180x320 (portrait)
-      const isShort = img.naturalHeight > img.naturalWidth;
-      setShortsCache(videoId, isShort);
-      resolve(isShort);
-    };
-    img.onerror = () => { resolve(false); };
-    // mqdefault returns correct aspect ratio for both regular and shorts
-    img.src = `https://i.ytimg.com/vi/${videoId}/mqdefault.jpg?_=${Date.now()}`;
-  });
+async function detectShort(videoId) {
+  const cache = getShortsCache();
+  if (videoId in cache) return cache[videoId];
+
+  let isShort = false;
+
+  try {
+    const url = `https://www.youtube.com/watch?v=${videoId}`;
+    const html = await fetchRSSRaw(url);
+    if (html) {
+      isShort =
+        html.includes('/shorts/' + videoId) ||
+        html.includes('"isShort"') ||
+        html.includes('"reelWatchEndpoint"') ||
+        html.includes('"shortsLockupViewModel"') ||
+        html.includes('"SHORTS"');
+    }
+  } catch { isShort = false; }
+
+  setShortsCache(videoId, isShort);
+  return isShort;
+}
+
+// Separate raw fetch for watch page (no XML validation)
+async function fetchRSSRaw(url) {
+  const enc = encodeURIComponent(url);
+  const proxies = [
+    `https://api.allorigins.win/raw?url=${enc}`,
+    `https://corsproxy.io/?url=${enc}`,
+    `https://api.codetabs.com/v1/proxy?quest=${enc}`,
+  ];
+  for (const proxyUrl of proxies) {
+    try {
+      const controller = new AbortController();
+      const t = setTimeout(() => controller.abort(), 8000);
+      const res = await fetch(proxyUrl, { signal: controller.signal });
+      clearTimeout(t);
+      if (!res.ok) continue;
+      const text = await res.text();
+      if (text && text.length > 500) return text;
+    } catch { continue; }
+  }
+  return null;
 }
 function getWatched() { try { return JSON.parse(localStorage.getItem('sw_watched') || '{}'); } catch { return {}; } }
 function markWatched(id) { const w = getWatched(); w[id] = Date.now(); try { localStorage.setItem('sw_watched', JSON.stringify(w)); } catch {} }
@@ -765,13 +792,17 @@ function showSkeletons() {
 
 async function detectShortsInBackground() {
   const toCheck = allVideos.filter(v => v.category !== 'Shorts & Other');
-  // Run in parallel for speed
-  await Promise.all(toCheck.map(async video => {
-    const isShort = await detectShortByThumbnail(video.id);
-    if (isShort) video.category = 'Shorts & Other';
-  }));
-  // Re-render with correct categories
-  renderFeed();
+  // Process in small batches to avoid hammering the proxy
+  const batchSize = 5;
+  for (let i = 0; i < toCheck.length; i += batchSize) {
+    const batch = toCheck.slice(i, i + batchSize);
+    await Promise.all(batch.map(async video => {
+      const isShort = await detectShort(video.id);
+      if (isShort) video.category = 'Shorts & Other';
+    }));
+    // Re-render after each batch so feed updates progressively
+    renderFeed();
+  }
 }
 
 async function loadVideos() {
