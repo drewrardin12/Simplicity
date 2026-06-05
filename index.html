@@ -856,7 +856,7 @@ function renderFeed() {
 function openPlayer(videoId, title, channelName) {
   document.getElementById('player-title').textContent = title;
   document.getElementById('player-channel').textContent = channelName;
-  document.getElementById('player-iframe').src = `https://www.youtube.com/embed/${videoId}?autoplay=1&enablejsapi=1`;
+  document.getElementById('player-iframe').src = `https://www.youtube.com/embed/${videoId}?autoplay=1`;
   document.getElementById('player-watch-on').onclick = () => window.open(`https://www.youtube.com/watch?v=${videoId}`, '_blank');
   document.getElementById('player-modal').classList.add('open');
   currentVideoTime = 0;
@@ -959,20 +959,7 @@ function closeTimerEnd() {
 
 
 // PIP — trigger when user leaves the page
-document.addEventListener('visibilitychange', () => {
-  if (document.hidden) {
-    const iframe = document.getElementById('player-iframe');
-    if (iframe.src && document.pictureInPictureEnabled) {
-      // Can't directly PIP an iframe — use the video element inside it
-      try {
-        const video = iframe.contentDocument?.querySelector('video');
-        if (video && video.requestPictureInPicture) {
-          video.requestPictureInPicture().catch(() => {});
-        }
-      } catch(e) {}
-    }
-  }
-});
+
 
 function showSkeletons() {
   document.getElementById('feed').innerHTML = Array(6).fill(`
