@@ -416,30 +416,7 @@
   .player-channel { font-size: 13px; color: var(--text3); font-weight: 500; }
   .player-frame-wrap { position: relative; width: 100%; padding-top: 56.25%; }
   .player-frame-wrap iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: none; }
-  .seek-zone {
-    position: absolute; top: 0; bottom: 0; width: 30%;
-    z-index: 10; display: flex; align-items: center; justify-content: center;
-  }
-  .seek-zone-left { left: 0; }
-  .seek-zone-right { right: 0; }
-  .seek-ripple {
-    position: absolute; border-radius: 50%;
-    background: rgba(255,255,255,0.15);
-    width: 80px; height: 80px;
-    display: flex; align-items: center; justify-content: center;
-    opacity: 0; pointer-events: none;
-    transition: opacity 0.15s;
-  }
-  .seek-ripple.show { opacity: 1; }
-  .seek-ripple svg { color: #fff; }
-  .seek-label {
-    position: absolute; bottom: 8px;
-    font-family: 'Outfit', sans-serif; font-size: 11px;
-    color: rgba(255,255,255,0.8); letter-spacing: 0.5px;
-    opacity: 0; pointer-events: none; transition: opacity 0.15s;
-    text-shadow: 0 1px 4px rgba(0,0,0,0.8);
-  }
-  .seek-label.show { opacity: 1; }
+
   .player-watch-on {
     display: flex; align-items: center; justify-content: center; gap: 8px;
     padding: 16px; color: var(--text3); font-size: 13px; cursor: pointer;
@@ -581,18 +558,7 @@
   </div>
   <div class="player-frame-wrap">
     <iframe id="player-iframe" allowfullscreen allow="autoplay; encrypted-media; picture-in-picture" allowpiptrigger></iframe>
-    <div class="seek-zone seek-zone-left" id="seek-left">
-      <div class="seek-ripple" id="ripple-left">
-        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polygon points="19 20 9 12 19 4 19 20"/><line x1="5" y1="19" x2="5" y2="5"/></svg>
-      </div>
-      <div class="seek-label" id="label-left">-10s</div>
-    </div>
-    <div class="seek-zone seek-zone-right" id="seek-right">
-      <div class="seek-ripple" id="ripple-right">
-        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polygon points="5 4 15 12 5 20 5 4"/><line x1="19" y1="5" x2="19" y2="19"/></svg>
-      </div>
-      <div class="seek-label" id="label-right">+10s</div>
-    </div>
+
   </div>
   <button class="player-watch-on" id="player-watch-on">
     Watch on YouTube
@@ -990,60 +956,7 @@ function closeTimerEnd() {
   closePlayer();
 }
 
-// DOUBLE TAP SEEK
-let lastTapLeft = 0, lastTapRight = 0;
-let currentVideoTime = 0;
 
-// Listen for time updates from YouTube iframe
-window.addEventListener('message', (e) => {
-  try {
-    const data = JSON.parse(e.data);
-    if (data.event === 'infoDelivery' && data.info?.currentTime !== undefined) {
-      currentVideoTime = data.info.currentTime;
-    }
-  } catch {}
-});
-
-function showSeekFeedback(side) {
-  const ripple = document.getElementById(`ripple-${side}`);
-  const label = document.getElementById(`label-${side}`);
-  ripple.classList.add('show');
-  label.classList.add('show');
-  setTimeout(() => {
-    ripple.classList.remove('show');
-    label.classList.remove('show');
-  }, 600);
-}
-
-function seekRelative(delta) {
-  const iframe = document.getElementById('player-iframe');
-  if (!iframe.src) return;
-  const newTime = Math.max(0, currentVideoTime + delta);
-  iframe.contentWindow.postMessage(JSON.stringify({
-    event: 'command',
-    func: 'seekTo',
-    args: [newTime, true]
-  }), '*');
-  currentVideoTime = newTime;
-}
-
-document.getElementById('seek-left').addEventListener('click', function() {
-  const now = Date.now();
-  if (now - lastTapLeft < 350) {
-    showSeekFeedback('left');
-    seekRelative(-10);
-  }
-  lastTapLeft = now;
-});
-
-document.getElementById('seek-right').addEventListener('click', function() {
-  const now = Date.now();
-  if (now - lastTapRight < 350) {
-    showSeekFeedback('right');
-    seekRelative(10);
-  }
-  lastTapRight = now;
-});
 
 // PIP — trigger when user leaves the page
 document.addEventListener('visibilitychange', () => {
