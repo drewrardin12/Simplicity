@@ -620,10 +620,16 @@ function detectShort(videoId, title) {
 function getWatched() { try { return JSON.parse(localStorage.getItem('sw_watched') || '{}'); } catch { return {}; } }
 function markWatched(id) { const w = getWatched(); w[id] = Date.now(); try { localStorage.setItem('sw_watched', JSON.stringify(w)); } catch {} }
 function getContinue() { try { return JSON.parse(localStorage.getItem('sw_continue') || '[]'); } catch { return []; } }
-function addToContinue(video) {
+function addToContinue(video, timestamp = 0) {
   let list = getContinue().filter(v => v.id !== video.id);
-  list.unshift(video);
+  list.unshift({ ...video, resumeAt: timestamp });
   try { localStorage.setItem('sw_continue', JSON.stringify(list.slice(0, 20))); } catch {}
+}
+
+function getResumeTime(videoId) {
+  const list = getContinue();
+  const entry = list.find(v => v.id === videoId);
+  return entry?.resumeAt || 0;
 }
 
 function openDrawer() {
@@ -806,12 +812,12 @@ function buildCard(v, watched) {
   const dur = formatDuration(v.seconds);
   const inProgress = getContinue().find(c => c.id === v.id);
   const card = document.createElement('div');
-  card.className = `video-card${isWatched ? ' watched' : ''}${newVid && !isWatched ? ' is-new' : ''}`;
+  card.className = `video-card${isWatched ? ' watched' : ''}`;
   card.dataset.vid = v.id;
   card.innerHTML = `
     <div class="card-thumb-wrap">
       <img src="${v.thumbnail}" alt="" loading="lazy">
-      ${newVid && !isWatched ? '<div class="badge-new">New</div>' : ''}
+      
       ${isWatched ? '<div class="badge-watched">Watched</div>' : ''}
       ${dur ? `<div class="badge-duration">${dur}</div>` : ''}
       ${inProgress ? `<div class="card-progress"><div class="card-progress-bar" style="width:35%"></div></div>` : ''}
@@ -853,10 +859,26 @@ function renderFeed() {
   filtered.forEach(v => feed.appendChild(buildCard(v, watched)));
 }
 
+let currentPlaybackTime = 0;
+let currentPlaybackVideoId = null;
+
+window.addEventListener('message', (e) => {
+  try {
+    const data = JSON.parse(e.data);
+    if (data.event === 'infoDelivery' && data.info?.currentTime !== undefined) {
+      currentPlaybackTime = data.info.currentTime;
+    }
+  } catch {}
+});
+
 function openPlayer(videoId, title, channelName) {
+  currentPlaybackTime = 0;
+  currentPlaybackVideoId = videoId;
+  const resumeAt = getResumeTime(videoId);
   document.getElementById('player-title').textContent = title;
   document.getElementById('player-channel').textContent = channelName;
-  document.getElementById('player-iframe').src = `https://www.youtube.com/embed/${videoId}?autoplay=1`;
+  const startParam = resumeAt > 5 ? `&start=${Math.floor(resumeAt)}` : '';
+  document.getElementById('player-iframe').src = `https://www.youtube.com/embed/${videoId}?autoplay=1&enablejsapi=1${startParam}`;
   document.getElementById('player-watch-on').onclick = () => window.open(`https://www.youtube.com/watch?v=${videoId}`, '_blank');
   document.getElementById('player-modal').classList.add('open');
   currentVideoTime = 0;
@@ -868,10 +890,17 @@ function openPlayer(videoId, title, channelName) {
   document.body.style.overflow = 'hidden';
   markWatched(videoId);
   const video = allVideos.find(v => v.id === videoId);
-  if (video) addToContinue(video);
+  if (video) addToContinue(video, getResumeTime(videoId));
   renderFeed();
 }
 function closePlayer() {
+  // Save resume position before closing
+  if (currentPlaybackVideoId && currentPlaybackTime > 5) {
+    const video = allVideos.find(v => v.id === currentPlaybackVideoId);
+    if (video) addToContinue(video, currentPlaybackTime);
+  }
+  currentPlaybackVideoId = null;
+  currentPlaybackTime = 0;
   document.getElementById('player-modal').classList.remove('open');
   document.getElementById('player-iframe').src = '';
   document.body.style.overflow = '';
