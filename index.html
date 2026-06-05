@@ -446,6 +446,7 @@ const CHANNELS = [
   { name: 'Locked On White Sox', id: 'UCcvbtp567XlaGyMs8w_DTFA', category: 'Sports Talk' },
   { name: 'Andrew Fenichel',     id: 'UCenGh_r6mAm8uvnso5JWVjA', category: 'Shorts & Other' },
   { name: 'History at Night',    id: 'UCKDRru3yD00CpqKZRs69vWg', category: 'Shorts & Other' },
+  { name: 'Robby Berger',        id: 'UCs7hJfreZhOmxqTdDRNlwQQ', category: 'Golf' },
 ];
 
 const CATEGORIES = ['Golf', 'Packers', 'Sports Talk', 'Shorts & Other'];
@@ -764,8 +765,22 @@ function detectShortsInBackground() {
   if (changed) renderFeed();
 }
 
+// Hardcoded collab videos that don't appear on primary channel RSS
+const HARDCODED_VIDEOS = [
+  {
+    id: 'ZdrX1NXQ4zI',
+    title: 'Can I Break 50 with Bob Does Sports? (Explosive)',
+    thumbnail: 'https://i.ytimg.com/vi/ZdrX1NXQ4zI/mqdefault.jpg',
+    channelName: 'Bob Does Sports',
+    category: 'Golf',
+    publishedAt: '2026-06-04T00:00:00Z',
+    seconds: null,
+    isShort: false,
+  },
+];
+
 async function loadVideos() {
-  allVideos = [];
+  allVideos = [...HARDCODED_VIDEOS];
   document.getElementById('video-count').textContent = 'Loading...';
   const promises = CHANNELS.map(channel =>
     fetchChannelVideos(channel).then(videos => {
