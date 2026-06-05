@@ -74,11 +74,11 @@
   }
   .fade-bottom {
     position: fixed; bottom: 0; left: 0; right: 0;
-    height: 140px; pointer-events: none; z-index: 199;
+    height: 180px; pointer-events: none; z-index: 199;
     background: linear-gradient(to top,
       rgba(4,4,6,1) 0%,
-      rgba(4,4,6,0.85) 35%,
-      rgba(4,4,6,0.4) 65%,
+      rgba(4,4,6,0.95) 40%,
+      rgba(4,4,6,0.58) 65%,
       transparent 100%
     );
   }
@@ -152,16 +152,16 @@
     content: ''; position: absolute; bottom: -20px; right: -20px;
     width: 70%; height: 70%; z-index: 1; pointer-events: none;
     background: radial-gradient(ellipse at bottom right,
-      rgba(34,197,94,0.28) 0%,
-      rgba(34,197,94,0.10) 45%,
+      rgba(34,197,94,0.21) 0%,
+      rgba(34,197,94,0.075) 45%,
       transparent 70%
     );
     border-radius: 50%; filter: blur(16px);
   }
   .video-card.is-new::after {
     background: radial-gradient(ellipse at bottom right,
-      rgba(34,197,94,0.42) 0%,
-      rgba(34,197,94,0.18) 45%,
+      rgba(34,197,94,0.32) 0%,
+      rgba(34,197,94,0.135) 45%,
       transparent 70%
     );
   }
@@ -172,7 +172,7 @@
   .card-thumb-wrap img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
   .card-thumb-wrap::after {
     content: ''; position: absolute; inset: 0;
-    background: linear-gradient(to bottom, transparent 25%, rgba(0,0,0,0.35) 55%, rgba(0,0,0,0.95) 100%);
+    background: linear-gradient(to bottom, transparent 20%, rgba(0,0,0,0.49) 52%, rgba(0,0,0,1.0) 100%);
     pointer-events: none; z-index: 1;
   }
   .badge-new {
